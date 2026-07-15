@@ -28,10 +28,10 @@ namespace EmuFrontend.CoreInterop
         [StructLayout(LayoutKind.Sequential)]
         public struct retro_game_info
         {
-            [MarshalAs(UnmanagedType.LPUTF8Str)] public string path;
+            public IntPtr path;
             public IntPtr data;
             public UIntPtr size;
-            [MarshalAs(UnmanagedType.LPUTF8Str)] public string meta;
+            public IntPtr meta;
         }
 
         public retro_init_t? RetroInit;
@@ -74,8 +74,13 @@ namespace EmuFrontend.CoreInterop
         {
             string ext = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".dll" : ".so";
             string corePath = $"cores/{coreName}_libretro{ext}";
+            Logger.Info($"Attempting to load core from: {corePath}");
             if (!NativeLibrary.TryLoad(corePath, out coreHandle))
+            {
+                Logger.Error($"Failed to load core library: {corePath}");
                 throw new Exception($"Failed to load core from {corePath}");
+            }
+            Logger.Info($"Core library {corePath} loaded successfully. Handle: {coreHandle}");
 
             RetroInit = GetExport<retro_init_t>("retro_init");
             RetroDeinit = GetExport<retro_deinit_t>("retro_deinit");
@@ -114,10 +119,33 @@ namespace EmuFrontend.CoreInterop
             return null;
         }
 
-        public bool LoadGame(string path)
+        public bool LoadGame(string romPath)
         {
-            var info = new retro_game_info { path = path, data = IntPtr.Zero, size = UIntPtr.Zero, meta = "" };
-            return RetroLoadGame?.Invoke(ref info) ?? false;
+            Logger.Info($"Loading ROM: {romPath}");
+            
+            byte[] romBytes = File.ReadAllBytes(romPath);
+            IntPtr unmanagedPointer = Marshal.AllocHGlobal(romBytes.Length);
+            Marshal.Copy(romBytes, 0, unmanagedPointer, romBytes.Length);
+
+            IntPtr pathPtr = Marshal.StringToCoTaskMemUTF8(romPath);
+
+            var info = new retro_game_info 
+            { 
+                path = pathPtr, 
+                data = unmanagedPointer, 
+                size = (UIntPtr)romBytes.Length, 
+                meta = IntPtr.Zero 
+            };
+            
+            bool result = RetroLoadGame?.Invoke(ref info) ?? false;
+            
+            if (result) Logger.Info("Core successfully loaded the ROM.");
+            else Logger.Error("Core failed to load the ROM.");
+
+            Marshal.FreeHGlobal(unmanagedPointer);
+            Marshal.FreeCoTaskMem(pathPtr);
+
+            return result;
         }
 
         public void RunFrame()

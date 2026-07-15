@@ -13,14 +13,15 @@ namespace EmuFrontend
         [System.STAThread]
         static void Main(string[] args)
         {
+            Logger.Initialize();
             try
             {
-                File.AppendAllText("crash.log", $"[{DateTime.Now}] Application Started\n");
+                Logger.Info("Application Started");
                 Run();
             }
             catch (Exception ex)
             {
-                File.AppendAllText("crash.log", $"[{DateTime.Now}] FATAL CRASH:\n{ex}\n");
+                Logger.Error($"FATAL CRASH:\n{ex}");
             }
         }
 
@@ -102,13 +103,13 @@ namespace EmuFrontend
                             }
                             else
                             {
-                                File.AppendAllText("crash.log", $"[{DateTime.Now}] Core rejected the ROM file.\n");
+                                Logger.Error($"Core rejected the ROM file: {overlay.SelectedRomPath}");
                             }
                             overlay.ShouldLoadRom = false;
                         }
                         catch (Exception ex)
                         {
-                            File.AppendAllText("crash.log", $"[{DateTime.Now}] Core Load Error: {ex.Message}\n");
+                            Logger.Error($"Core Load Error: {ex.Message}");
                             overlay.ShouldLoadRom = false;
                         }
                     }
