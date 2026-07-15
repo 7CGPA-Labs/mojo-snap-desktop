@@ -13,10 +13,22 @@ namespace EmuFrontend
         [System.STAThread]
         static void Main(string[] args)
         {
+            try
+            {
+                File.AppendAllText("crash.log", $"[{DateTime.Now}] Application Started\n");
+                Run();
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText("crash.log", $"[{DateTime.Now}] FATAL CRASH:\n{ex}\n");
+            }
+        }
+
+        static void Run()
+        {
             Raylib.InitWindow(1280, 720, "Libretro Frontend");
             Raylib.SetTargetFPS(60);
 
-            // Initialize ImGui Context to prevent crashes when ImGui methods are called
             var ctx = ImGui.CreateContext();
             ImGui.SetCurrentContext(ctx);
 
@@ -50,6 +62,7 @@ namespace EmuFrontend
                         }
                         catch (Exception ex)
                         {
+                            File.AppendAllText("crash.log", $"[{DateTime.Now}] Core Load Error: {ex.Message}\n");
                             Console.WriteLine(ex.Message);
                             overlay.ShouldLoadRom = false;
                         }
@@ -77,8 +90,6 @@ namespace EmuFrontend
                 }
 
                 ImGui.Render();
-                // Note: A full ImGui-to-Raylib rendering backend loop is required here to visually draw the ImGui data to the screen.
-
                 Raylib.EndDrawing();
             }
 
