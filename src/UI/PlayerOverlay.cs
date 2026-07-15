@@ -68,7 +68,7 @@ namespace EmuFrontend.UI
                 }
             }
 
-            ImGui.BeginChild("FileBrowser", new Vector2(0, 300), true);
+            ImGui.BeginChild("FileBrowser", new Vector2(0, 300), ImGuiChildFlags.Border);
             foreach (var dir in currentDirs)
             {
                 if (ImGui.Selectable("[Folder] " + System.IO.Path.GetFileName(dir)))
