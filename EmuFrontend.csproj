@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishAot>true</PublishAot>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <TrimMode>link</TrimMode>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Raylib-cs" Version="6.0.0" />
+    <PackageReference Include="ImGui.NET" Version="1.90.0.1" />
+  </ItemGroup>
+
+  <Target Name="FetchCoresBeforeBuild" BeforeTargets="PrepareForPublish;BeforeBuild">
+    <Message Text="Fetching cores..." Importance="high" />
+    <Exec Command="powershell -Command &quot;if (-not (Test-Path 'cores')) { New-Item -ItemType Directory -Path 'cores' }; $cores = @('fceumm', 'snes9x', 'genesis_plus_gx', 'gambatte', 'mgba', 'pcsx_rearmed', 'dosbox_pure'); foreach ($core in $cores) { $url = 'https://buildbot.libretro.com/stable/1.22.2/windows/x86_64/' + $core + '_libretro.dll.zip'; $dest = 'cores\' + $core + '.zip'; if (-not (Test-Path $dest)) { Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -Path $dest -DestinationPath cores -Force } }&quot;" IgnoreExitCode="true" />
+  </Target>
+
+</Project>
