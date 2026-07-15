@@ -72,11 +72,11 @@ namespace EmuFrontend.CoreInterop
             {
                 ".nes" => "fceumm",
                 ".smc" or ".sfc" => "snes9x",
-                ".gen" or ".md" => "genesis_plus_gx",
+                ".md" or ".sms" or ".gg" => "genesis_plus_gx",
                 ".gb" or ".gbc" => "gambatte",
                 ".gba" => "mgba",
-                ".bin" or ".cue" or ".iso" => "pcsx_rearmed",
-                ".exe" or ".bat" or ".com" or ".dos" => "dosbox_pure",
+                ".bin" or ".cue" or ".iso" or ".img" => "pcsx_rearmed",
+                ".exe" or ".bat" or ".com" or ".zip" => "dosbox_pure",
                 _ => throw new Exception($"No core found for extension {ext}")
             };
         }
