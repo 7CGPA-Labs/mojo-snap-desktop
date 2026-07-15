@@ -35,6 +35,10 @@ jobs:
     - name: Publish Native AOT
       run: dotnet publish -c Release -r ${{ matrix.rid }}
       
+    - name: Copy cores to publish directory
+      shell: bash
+      run: cp -r cores bin/Release/net9.0/${{ matrix.rid }}/publish/
+      
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
