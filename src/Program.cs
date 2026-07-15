@@ -38,6 +38,7 @@ namespace EmuFrontend
             
             Texture2D gameTexture = new Texture2D();
             bool textureInitialized = false;
+            uint[] pixelBuffer = Array.Empty<uint>();
 
             while (!Raylib.WindowShouldClose())
             {
@@ -46,7 +47,6 @@ namespace EmuFrontend
                 
                 if (overlay.CurrentState == ApplicationState.Gameplay)
                 {
-                    // Execute the Libretro core frame
                     coreManager.RunFrame();
 
                     if (coreManager.FrameData != IntPtr.Zero)
@@ -56,16 +56,68 @@ namespace EmuFrontend
                             if (textureInitialized) Raylib.UnloadTexture(gameTexture);
                             
                             Image img = Raylib.GenImageColor((int)coreManager.FrameWidth, (int)coreManager.FrameHeight, Color.Blank);
-                            img.Format = PixelFormat.UncompressedR8G8B8A8; // XRGB8888
+                            img.Format = PixelFormat.UncompressedR8G8B8A8;
                             gameTexture = Raylib.LoadTextureFromImage(img);
                             Raylib.UnloadImage(img);
                             textureInitialized = true;
                         }
 
-                        // Update GPU texture with native pixel buffer
                         unsafe
                         {
-                            Raylib.UpdateTexture(gameTexture, (void*)coreManager.FrameData);
+                            int count = (int)(coreManager.FrameWidth * coreManager.FrameHeight);
+                            if (pixelBuffer.Length < count)
+                            {
+                                pixelBuffer = new uint[count];
+                            }
+
+                            if (coreManager.PixelFormat == 1) // XRGB8888
+                            {
+                                uint* src = (uint*)coreManager.FrameData.ToPointer();
+                                fixed (uint* dst = pixelBuffer)
+                                {
+                                    for (int i = 0; i < count; i++)
+                                    {
+                                        uint p = src[i];
+                                        uint r = (p >> 16) & 0xFF;
+                                        uint g = (p >> 8) & 0xFF;
+                                        uint b = p & 0xFF;
+                                        dst[i] = (0xFF << 24) | (b << 16) | (g << 8) | r;
+                                    }
+                                    Raylib.UpdateTexture(gameTexture, dst);
+                                }
+                            }
+                            else if (coreManager.PixelFormat == 0) // 0RGB1555
+                            {
+                                ushort* src = (ushort*)coreManager.FrameData.ToPointer();
+                                fixed (uint* dst = pixelBuffer)
+                                {
+                                    for (int i = 0; i < count; i++)
+                                    {
+                                        ushort p = src[i];
+                                        uint r = (uint)((p >> 10) & 0x1F) << 3;
+                                        uint g = (uint)((p >> 5) & 0x1F) << 3;
+                                        uint b = (uint)(p & 0x1F) << 3;
+                                        dst[i] = (0xFF << 24) | (b << 16) | (g << 8) | r;
+                                    }
+                                    Raylib.UpdateTexture(gameTexture, dst);
+                                }
+                            }
+                            else if (coreManager.PixelFormat == 2) // RGB565
+                            {
+                                ushort* src = (ushort*)coreManager.FrameData.ToPointer();
+                                fixed (uint* dst = pixelBuffer)
+                                {
+                                    for (int i = 0; i < count; i++)
+                                    {
+                                        ushort p = src[i];
+                                        uint r = (uint)((p >> 11) & 0x1F) << 3;
+                                        uint g = (uint)((p >> 5) & 0x3F) << 2;
+                                        uint b = (uint)(p & 0x1F) << 3;
+                                        dst[i] = (0xFF << 24) | (b << 16) | (g << 8) | r;
+                                    }
+                                    Raylib.UpdateTexture(gameTexture, dst);
+                                }
+                            }
                         }
                     }
 

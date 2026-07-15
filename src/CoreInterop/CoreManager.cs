@@ -50,6 +50,7 @@ namespace EmuFrontend.CoreInterop
         public uint FrameWidth { get; private set; }
         public uint FrameHeight { get; private set; }
         public IntPtr FrameData { get; private set; }
+        public int PixelFormat { get; private set; } = 0;
         public UIntPtr FramePitch { get; private set; }
 
         private IntPtr coreHandle;
@@ -159,8 +160,15 @@ namespace EmuFrontend.CoreInterop
         {
             if (cmd == 10) // RETRO_ENVIRONMENT_SET_PIXEL_FORMAT
             {
-                Marshal.WriteInt32(data, 1); // 1 = XRGB8888
-                return true; 
+                int format = Marshal.ReadInt32(data);
+                if (format == 0 || format == 1 || format == 2)
+                {
+                    PixelFormat = format;
+                    Logger.Info($"Core requested Pixel Format: {format}");
+                    return true;
+                }
+                Logger.Warn($"Core requested unknown Pixel Format: {format}");
+                return false; 
             }
             return false;
         }
