@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Raylib_cs;
 
 namespace EmuFrontend.CoreInterop
 {
@@ -101,7 +102,7 @@ namespace EmuFrontend.CoreInterop
             AudioCallback = (l, r) => { };
             AudioBatchCallback = (data, frames) => frames;
             InputPollCallback = () => { };
-            InputStateCallback = (port, device, index, id) => 0;
+            InputStateCallback = InputStateCallbackImpl;
 
             setEnv?.Invoke(EnvCallback);
             RetroInit?.Invoke();
@@ -180,6 +181,29 @@ namespace EmuFrontend.CoreInterop
             FrameHeight = height;
             FrameData = data;
             FramePitch = pitch;
+        }
+
+        private short InputStateCallbackImpl(uint port, uint device, uint index, uint id)
+        {
+            if (port != 0 || device != 1) return 0; // Only Player 1 Joypad
+
+            bool pressed = false;
+            switch (id)
+            {
+                case 0: pressed = Raylib.IsKeyDown(KeyboardKey.Z); break; // B
+                case 1: pressed = Raylib.IsKeyDown(KeyboardKey.A); break; // Y
+                case 2: pressed = Raylib.IsKeyDown(KeyboardKey.RightShift); break; // Select
+                case 3: pressed = Raylib.IsKeyDown(KeyboardKey.Enter); break; // Start
+                case 4: pressed = Raylib.IsKeyDown(KeyboardKey.Up); break; // Up
+                case 5: pressed = Raylib.IsKeyDown(KeyboardKey.Down); break; // Down
+                case 6: pressed = Raylib.IsKeyDown(KeyboardKey.Left); break; // Left
+                case 7: pressed = Raylib.IsKeyDown(KeyboardKey.Right); break; // Right
+                case 8: pressed = Raylib.IsKeyDown(KeyboardKey.X); break; // A
+                case 9: pressed = Raylib.IsKeyDown(KeyboardKey.S); break; // X
+                case 10: pressed = Raylib.IsKeyDown(KeyboardKey.Q); break; // L
+                case 11: pressed = Raylib.IsKeyDown(KeyboardKey.W); break; // R
+            }
+            return (short)(pressed ? 1 : 0);
         }
     }
 }
