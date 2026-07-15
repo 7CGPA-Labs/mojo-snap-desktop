@@ -37,7 +37,8 @@ namespace EmuFrontend.CoreInterop
 
         public void LoadCore(string coreName)
         {
-            string corePath = $"cores/{coreName}_libretro.dll";
+            string ext = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".dll" : ".so";
+            string corePath = $"cores/{coreName}_libretro{ext}";
             if (!NativeLibrary.TryLoad(corePath, out coreHandle))
             {
                 throw new Exception($"Failed to load core {coreName} from {corePath}");
