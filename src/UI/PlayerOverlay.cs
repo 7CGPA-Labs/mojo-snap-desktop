@@ -31,9 +31,61 @@ namespace EmuFrontend.UI
         private string romPathInput = string.Empty;
         private string cheatInput = string.Empty;
 
+        private string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        private string[] currentDirs = Array.Empty<string>();
+        private string[] currentFiles = Array.Empty<string>();
+        private bool dirInitialized = false;
+
+        private void RefreshDirectory()
+        {
+            try
+            {
+                currentDirs = System.IO.Directory.GetDirectories(currentDirectory);
+                currentFiles = System.IO.Directory.GetFiles(currentDirectory);
+            }
+            catch { }
+        }
+
         public void DrawSelectionScreen()
         {
-            ImGui.Begin("Startup");
+            if (!dirInitialized)
+            {
+                RefreshDirectory();
+                dirInitialized = true;
+            }
+
+            ImGui.SetNextWindowSize(new Vector2(600, 450), ImGuiCond.FirstUseEver);
+            ImGui.Begin("Load ROM");
+            
+            ImGui.Text("Current Directory: " + currentDirectory);
+            if (ImGui.Button(".. (Up)"))
+            {
+                var parent = System.IO.Directory.GetParent(currentDirectory);
+                if (parent != null)
+                {
+                    currentDirectory = parent.FullName;
+                    RefreshDirectory();
+                }
+            }
+
+            ImGui.BeginChild("FileBrowser", new Vector2(0, 300), true);
+            foreach (var dir in currentDirs)
+            {
+                if (ImGui.Selectable("[Folder] " + System.IO.Path.GetFileName(dir)))
+                {
+                    currentDirectory = dir;
+                    RefreshDirectory();
+                }
+            }
+            foreach (var file in currentFiles)
+            {
+                if (ImGui.Selectable(System.IO.Path.GetFileName(file)))
+                {
+                    romPathInput = file;
+                }
+            }
+            ImGui.EndChild();
+
             ImGui.InputText("ROM Path", ref romPathInput, 512);
             if (ImGui.Button("Load ROM"))
             {
