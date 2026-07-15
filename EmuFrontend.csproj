@@ -19,12 +19,12 @@
 
   <Target Name="FetchCoresBeforeBuildWindows" BeforeTargets="PrepareForPublish;BeforeBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <Message Text="Fetching cores for Windows..." Importance="high" />
-    <Exec Command="powershell -Command &quot;if (-not (Test-Path 'cores')) { New-Item -ItemType Directory -Path 'cores' }; $cores = @('fceumm', 'snes9x', 'genesis_plus_gx', 'gambatte', 'mgba', 'pcsx_rearmed', 'dosbox_pure'); foreach ($core in $cores) { $url = 'https://buildbot.libretro.com/stable/1.22.2/windows/x86_64/' + $core + '_libretro.dll.zip'; $dest = 'cores\' + $core + '.zip'; if (-not (Test-Path $dest)) { Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -Path $dest -DestinationPath cores -Force } }&quot;" IgnoreExitCode="true" />
+    <Exec Command="powershell -Command &quot;if (-not (Test-Path 'cores')) { New-Item -ItemType Directory -Path 'cores' }; $cores = @('fceumm', 'snes9x', 'genesis_plus_gx', 'gambatte', 'mgba', 'pcsx_rearmed', 'dosbox_pure'); foreach ($core in $cores) { $url = 'https://buildbot.libretro.com/nightly/windows/x86_64/latest/' + $core + '_libretro.dll.zip'; $dest = 'cores\' + $core + '.zip'; if (-not (Test-Path $dest)) { Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -Path $dest -DestinationPath cores -Force } }&quot;" IgnoreExitCode="true" />
   </Target>
 
   <Target Name="FetchCoresBeforeBuildLinux" BeforeTargets="PrepareForPublish;BeforeBuild" Condition="$([MSBuild]::IsOSPlatform('Linux'))">
     <Message Text="Fetching cores for Linux..." Importance="high" />
-    <Exec Command="bash -c &quot;mkdir -p cores; for core in fceumm snes9x genesis_plus_gx gambatte mgba pcsx_rearmed dosbox_pure; do url=\&quot;https://buildbot.libretro.com/stable/1.22.2/linux/x86_64/${core}_libretro.so.zip\&quot;; dest=\&quot;cores/${core}.zip\&quot;; if [ ! -f \&quot;$dest\&quot; ]; then wget -qO \&quot;$dest\&quot; \&quot;$url\&quot;; unzip -qo \&quot;$dest\&quot; -d cores; fi; done&quot;" IgnoreExitCode="true" />
+    <Exec Command="bash -c &quot;mkdir -p cores; for core in fceumm snes9x genesis_plus_gx gambatte mgba pcsx_rearmed dosbox_pure; do url=\&quot;https://buildbot.libretro.com/nightly/linux/x86_64/latest/${core}_libretro.so.zip\&quot;; dest=\&quot;cores/${core}.zip\&quot;; if [ ! -f \&quot;$dest\&quot; ]; then wget -qO \&quot;$dest\&quot; \&quot;$url\&quot;; unzip -qo \&quot;$dest\&quot; -d cores; fi; done&quot;" IgnoreExitCode="true" />
   </Target>
 
 </Project>
