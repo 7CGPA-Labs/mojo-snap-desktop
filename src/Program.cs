@@ -39,15 +39,27 @@ namespace EmuFrontend
             Texture2D gameTexture = new Texture2D();
             bool textureInitialized = false;
             uint[] pixelBuffer = Array.Empty<uint>();
+            double accumulator = 0.0;
 
             while (!Raylib.WindowShouldClose())
             {
+                double dt = Raylib.GetFrameTime();
+                
                 Raylib.BeginDrawing();
                 Raylib.ClearBackground(Color.DarkGray);
                 
                 if (overlay.CurrentState == ApplicationState.Gameplay)
                 {
-                    coreManager.RunFrame();
+                    double targetFrameTime = 1.0 / coreManager.AVInfo.timing.fps;
+                    accumulator += dt;
+                    
+                    if (accumulator > 0.1) accumulator = 0.1;
+
+                    while (accumulator >= targetFrameTime)
+                    {
+                        coreManager.RunFrame();
+                        accumulator -= targetFrameTime;
+                    }
 
                     if (coreManager.FrameData != IntPtr.Zero)
                     {
