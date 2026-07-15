@@ -81,7 +81,7 @@ namespace EmuFrontend
                                         uint r = (p >> 16) & 0xFF;
                                         uint g = (p >> 8) & 0xFF;
                                         uint b = p & 0xFF;
-                                        dst[i] = (0xFF << 24) | (b << 16) | (g << 8) | r;
+                                        dst[i] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
                                     }
                                     Raylib.UpdateTexture(gameTexture, dst);
                                 }
@@ -97,7 +97,7 @@ namespace EmuFrontend
                                         uint r = (uint)((p >> 10) & 0x1F) << 3;
                                         uint g = (uint)((p >> 5) & 0x1F) << 3;
                                         uint b = (uint)(p & 0x1F) << 3;
-                                        dst[i] = (0xFF << 24) | (b << 16) | (g << 8) | r;
+                                        dst[i] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
                                     }
                                     Raylib.UpdateTexture(gameTexture, dst);
                                 }
@@ -113,7 +113,7 @@ namespace EmuFrontend
                                         uint r = (uint)((p >> 11) & 0x1F) << 3;
                                         uint g = (uint)((p >> 5) & 0x3F) << 2;
                                         uint b = (uint)(p & 0x1F) << 3;
-                                        dst[i] = (0xFF << 24) | (b << 16) | (g << 8) | r;
+                                        dst[i] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
                                     }
                                     Raylib.UpdateTexture(gameTexture, dst);
                                 }
