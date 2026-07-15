@@ -57,6 +57,24 @@ namespace EmuFrontend.UI
             ImGui.Begin("Load ROM");
             
             ImGui.Text("Current Directory: " + currentDirectory);
+            
+            var drives = System.IO.DriveInfo.GetDrives();
+            if (ImGui.BeginCombo("Drives", System.IO.Path.GetPathRoot(currentDirectory)))
+            {
+                foreach (var drive in drives)
+                {
+                    if (drive.IsReady)
+                    {
+                        if (ImGui.Selectable(drive.Name))
+                        {
+                            currentDirectory = drive.Name;
+                            RefreshDirectory();
+                        }
+                    }
+                }
+                ImGui.EndCombo();
+            }
+            ImGui.SameLine();
             if (ImGui.Button(".. (Up)"))
             {
                 var parent = System.IO.Directory.GetParent(currentDirectory);
