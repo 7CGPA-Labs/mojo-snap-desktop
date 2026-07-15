@@ -31,6 +31,9 @@ namespace EmuFrontend
 
             var ctx = ImGui.CreateContext();
             ImGui.SetCurrentContext(ctx);
+            
+            // Build the default font atlas to prevent C++ IM_ASSERT aborts on NewFrame
+            ImGui.GetIO().Fonts.Build();
 
             var overlay = new PlayerOverlay();
             var coreManager = new CoreManager();
