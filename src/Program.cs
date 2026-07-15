@@ -152,6 +152,8 @@ namespace EmuFrontend
                             if (coreManager.LoadGame(overlay.SelectedRomPath))
                             {
                                 overlay.CurrentState = ApplicationState.Gameplay;
+                                Raylib.SetTargetFPS((int)coreManager.AVInfo.timing.fps);
+                                coreManager.InitAudioStream();
                             }
                             else
                             {

@@ -27,13 +27,18 @@ namespace EmuFrontend.CoreInterop
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_reset_t();
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct retro_game_info
-        {
-            public IntPtr path;
-            public IntPtr data;
-            public UIntPtr size;
-            public IntPtr meta;
-        }
+        public struct retro_game_info { public IntPtr path; public IntPtr data; public UIntPtr size; public IntPtr meta; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct retro_system_timing { public double fps; public double sample_rate; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct retro_game_geometry { public uint base_width; public uint base_height; public uint max_width; public uint max_height; public float aspect_ratio; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct retro_system_av_info { public retro_game_geometry geometry; public retro_system_timing timing; }
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_get_system_av_info_t(ref retro_system_av_info info);
 
         public retro_init_t? RetroInit;
         public retro_deinit_t? RetroDeinit;
@@ -53,6 +58,9 @@ namespace EmuFrontend.CoreInterop
         public IntPtr FrameData { get; private set; }
         public int PixelFormat { get; private set; } = 0;
         public UIntPtr FramePitch { get; private set; }
+        public retro_system_av_info AVInfo { get; private set; }
+        public AudioStream GameAudioStream;
+        public retro_get_system_av_info_t? RetroGetSystemAvInfo;
 
         private IntPtr coreHandle;
 
@@ -89,6 +97,7 @@ namespace EmuFrontend.CoreInterop
             RetroRun = GetExport<retro_run_t>("retro_run");
             RetroLoadGame = GetExport<retro_load_game_t>("retro_load_game");
             RetroReset = GetExport<retro_reset_t>("retro_reset");
+            RetroGetSystemAvInfo = GetExport<retro_get_system_av_info_t>("retro_get_system_av_info");
 
             var setEnv = GetExport<retro_set_environment_t>("retro_set_environment");
             var setVideo = GetExport<retro_set_video_refresh_t>("retro_set_video_refresh");
@@ -100,7 +109,7 @@ namespace EmuFrontend.CoreInterop
             EnvCallback = EnvironmentCallback;
             VideoCallback = VideoRefreshCallback;
             AudioCallback = (l, r) => { };
-            AudioBatchCallback = (data, frames) => frames;
+            AudioBatchCallback = AudioBatchCallbackImpl;
             InputPollCallback = () => { };
             InputStateCallback = InputStateCallbackImpl;
 
@@ -141,7 +150,13 @@ namespace EmuFrontend.CoreInterop
             
             bool result = RetroLoadGame?.Invoke(ref info) ?? false;
             
-            if (result) Logger.Info("Core successfully loaded the ROM.");
+            if (result)
+            {
+                var avInfo = new retro_system_av_info();
+                RetroGetSystemAvInfo?.Invoke(ref avInfo);
+                AVInfo = avInfo;
+                Logger.Info($"Core successfully loaded the ROM. FPS: {AVInfo.timing.fps}, SampleRate: {AVInfo.timing.sample_rate}");
+            }
             else Logger.Error("Core failed to load the ROM.");
 
             Marshal.FreeHGlobal(unmanagedPointer);
@@ -227,6 +242,27 @@ namespace EmuFrontend.CoreInterop
             }
 
             return (short)(pressed ? 1 : 0);
+        }
+
+        public void InitAudioStream()
+        {
+            if (Raylib.IsAudioStreamReady(GameAudioStream)) Raylib.UnloadAudioStream(GameAudioStream);
+            if (!Raylib.IsAudioDeviceReady()) Raylib.InitAudioDevice();
+            
+            GameAudioStream = Raylib.LoadAudioStream((uint)AVInfo.timing.sample_rate, 16, 2);
+            Raylib.PlayAudioStream(GameAudioStream);
+        }
+
+        private UIntPtr AudioBatchCallbackImpl(IntPtr data, UIntPtr frames)
+        {
+            if (Raylib.IsAudioStreamReady(GameAudioStream))
+            {
+                unsafe
+                {
+                    Raylib.UpdateAudioStream(GameAudioStream, data.ToPointer(), (int)frames);
+                }
+            }
+            return frames;
         }
     }
 }
