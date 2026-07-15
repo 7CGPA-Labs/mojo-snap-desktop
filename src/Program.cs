@@ -21,8 +21,6 @@ namespace EmuFrontend
             var overlay = new PlayerOverlay();
             var coreManager = new CoreManager();
 
-            FileStream? recordingStream = null;
-
             while (!Raylib.WindowShouldClose())
             {
                 Raylib.BeginDrawing();
