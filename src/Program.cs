@@ -46,7 +46,7 @@ namespace EmuFrontend
                 double dt = Raylib.GetFrameTime();
                 
                 Raylib.BeginDrawing();
-                Raylib.ClearBackground(Color.DarkGray);
+                Raylib.ClearBackground(Color.Black);
                 
                 if (overlay.CurrentState == ApplicationState.Gameplay)
                 {
