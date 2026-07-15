@@ -238,7 +238,7 @@ namespace rlImGui_cs
                 Format = PixelFormat.UncompressedR8G8B8A8,
             };
 
-            if (Raylib.IsTextureValid(FontTexture))
+            if (FontTexture.Id != 0)
                 Raylib.UnloadTexture(FontTexture);
 
             FontTexture = Raylib.LoadTextureFromImage(image);
