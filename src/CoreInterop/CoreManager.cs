@@ -75,8 +75,8 @@ namespace EmuFrontend.CoreInterop
                 ".md" or ".sms" or ".gg" => "genesis_plus_gx",
                 ".gb" or ".gbc" => "gambatte",
                 ".gba" => "mgba",
-                ".bin" or ".cue" or ".iso" or ".img" => "pcsx_rearmed",
-                ".exe" or ".bat" or ".com" or ".zip" => "dosbox_pure",
+                ".cue" or ".iso" or ".img" => "pcsx_rearmed",
+                ".exe" or ".bat" or ".com" or ".zip" or ".dos" => "dosbox_pure",
                 _ => throw new Exception($"No core found for extension {ext}")
             };
         }
