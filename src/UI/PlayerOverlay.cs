@@ -139,51 +139,61 @@ namespace EmuFrontend.UI
 
             ImGui.Begin("Media Controls", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar);
             
-            // Left Group: Settings & Core Controls
-            if (ImGui.Button("Settings", new Vector2(90, 40))) { ShowSettings = !ShowSettings; }
-            ImGui.SameLine();
-            if (ImGui.Button("Fullscreen", new Vector2(90, 40))) { ShouldToggleFullscreen = true; }
-            ImGui.SameLine();
-            if (ImGui.Button("Reset", new Vector2(80, 40))) { ShouldReset = true; }
-            ImGui.SameLine();
-            if (ImGui.Button("Close", new Vector2(80, 40))) { ShouldClose = true; }
-
-            // Center Group: Playback Controls
-            float centerStart = (windowWidth / 2) - 130;
-            ImGui.SameLine(centerStart);
-            
-            if (ImGui.Button(IsPaused ? "Play" : "Pause", new Vector2(80, 40))) { IsPaused = !IsPaused; }
-            ImGui.SameLine();
-            
-            ImGui.PushStyleColor(ImGuiCol.Button, IsFastForward ? new Vector4(0.8f, 0.4f, 0.0f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-            if (ImGui.Button("Fast Fwd", new Vector2(80, 40))) { IsFastForward = !IsFastForward; }
-            ImGui.PopStyleColor();
-            ImGui.SameLine();
-            
-            ImGui.PushStyleColor(ImGuiCol.Button, IsRecording ? new Vector4(0.8f, 0.1f, 0.1f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-            if (ImGui.Button("Record", new Vector2(80, 40))) { IsRecording = !IsRecording; }
-            ImGui.PopStyleColor();
-
-            // Right Group: States and Performance
-            float rightStart = windowWidth - 380;
-            ImGui.SameLine(rightStart);
-            
-            ImGui.SetNextItemWidth(80);
-            int slot = SaveStateSlot;
-            if (ImGui.Combo("Slot", ref slot, "Slot 0\0Slot 1\0Slot 2\0Slot 3\0Slot 4\0")) SaveStateSlot = slot;
-            ImGui.SameLine();
-            if (ImGui.Button("Save", new Vector2(60, 40))) { ShouldSaveState = true; }
-            ImGui.SameLine();
-            if (ImGui.Button("Load", new Vector2(60, 40))) { ShouldLoadState = true; }
-
-            ImGui.SameLine(windowWidth - 110);
-            ImGui.TextColored(new Vector4(0.4f, 1.0f, 0.4f, 1.0f), $"FPS: {fps:0.0}");
-            ImGui.TextColored(new Vector4(1.0f, 0.8f, 0.2f, 1.0f), $"{frameTime:0.00}ms");
-            
-            if (IsRecording)
+            if (ImGui.BeginTable("BottomBarLayout", 3, ImGuiTableFlags.SizingStretchProp))
             {
-                ImGui.SameLine(windowWidth - 40);
-                ImGui.TextColored(new Vector4(1, 0, 0, 1), "(REC)");
+                // Left Column
+                ImGui.TableNextColumn();
+                if (ImGui.Button("Settings", new Vector2(90, 40))) { ShowSettings = !ShowSettings; }
+                ImGui.SameLine();
+                if (ImGui.Button("Fullscreen", new Vector2(90, 40))) { ShouldToggleFullscreen = true; }
+                ImGui.SameLine();
+                if (ImGui.Button("Reset", new Vector2(80, 40))) { ShouldReset = true; }
+                ImGui.SameLine();
+                if (ImGui.Button("Close", new Vector2(80, 40))) { ShouldClose = true; }
+
+                // Center Column
+                ImGui.TableNextColumn();
+                float centerOffset = (ImGui.GetColumnWidth() / 2) - 130;
+                if (centerOffset > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + centerOffset);
+
+                if (ImGui.Button(IsPaused ? "Play" : "Pause", new Vector2(80, 40))) { IsPaused = !IsPaused; }
+                ImGui.SameLine();
+                
+                ImGui.PushStyleColor(ImGuiCol.Button, IsFastForward ? new Vector4(0.8f, 0.4f, 0.0f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
+                if (ImGui.Button("Fast Fwd", new Vector2(80, 40))) { IsFastForward = !IsFastForward; }
+                ImGui.PopStyleColor();
+                ImGui.SameLine();
+                
+                ImGui.PushStyleColor(ImGuiCol.Button, IsRecording ? new Vector4(0.8f, 0.1f, 0.1f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
+                if (ImGui.Button("Record", new Vector2(80, 40))) { IsRecording = !IsRecording; }
+                ImGui.PopStyleColor();
+
+                // Right Column
+                ImGui.TableNextColumn();
+                float rightOffset = ImGui.GetColumnWidth() - 320;
+                if (rightOffset > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + rightOffset);
+
+                ImGui.SetNextItemWidth(80);
+                int slot = SaveStateSlot;
+                if (ImGui.Combo("##Slot", ref slot, "Slot 0\0Slot 1\0Slot 2\0Slot 3\0Slot 4\0")) SaveStateSlot = slot;
+                ImGui.SameLine();
+                if (ImGui.Button("Save", new Vector2(60, 40))) { ShouldSaveState = true; }
+                ImGui.SameLine();
+                if (ImGui.Button("Load", new Vector2(60, 40))) { ShouldLoadState = true; }
+
+                ImGui.SameLine();
+                ImGui.BeginGroup();
+                ImGui.TextColored(new Vector4(0.4f, 1.0f, 0.4f, 1.0f), $"FPS: {fps:0.0}");
+                ImGui.TextColored(new Vector4(1.0f, 0.8f, 0.2f, 1.0f), $"{frameTime:0.00}ms");
+                ImGui.EndGroup();
+                
+                if (IsRecording)
+                {
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(1, 0, 0, 1), "(REC)");
+                }
+                
+                ImGui.EndTable();
             }
 
             ImGui.End();
