@@ -199,6 +199,11 @@ namespace EmuFrontend
                 }
                 else if (overlay.CurrentState == ApplicationState.Gameplay)
                 {
+                    if (overlay.ShouldToggleFullscreen)
+                    {
+                        Raylib.ToggleFullscreen();
+                        overlay.ShouldToggleFullscreen = false;
+                    }
                     if (overlay.ShouldReset)
                     {
                         coreManager.RetroReset?.Invoke();

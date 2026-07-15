@@ -33,6 +33,7 @@ namespace EmuFrontend.UI
         public bool IsFastForward { get; set; } = false;
         public bool ShouldSaveState { get; set; } = false;
         public bool ShouldLoadState { get; set; } = false;
+        public bool ShouldToggleFullscreen { get; set; } = false;
         
         private string cheatCodeInput = string.Empty;
         
@@ -122,8 +123,13 @@ namespace EmuFrontend.UI
         public void DrawPlaybackControls(float fps, float frameTime)
         {
             float windowWidth = ImGui.GetIO().DisplaySize.X;
+            float windowHeight = ImGui.GetIO().DisplaySize.Y;
             float barHeight = 65;
-            ImGui.SetNextWindowPos(new Vector2(0, ImGui.GetIO().DisplaySize.Y - barHeight));
+            
+            bool isMouseNearBottom = ImGui.GetIO().MousePos.Y > windowHeight - 120;
+            if (!isMouseNearBottom && !ShowSettings) return;
+
+            ImGui.SetNextWindowPos(new Vector2(0, windowHeight - barHeight));
             ImGui.SetNextWindowSize(new Vector2(windowWidth, barHeight));
             
             ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.08f, 0.08f, 0.10f, 0.95f));
@@ -135,6 +141,8 @@ namespace EmuFrontend.UI
             
             // Left Group: Settings & Core Controls
             if (ImGui.Button("Settings", new Vector2(90, 40))) { ShowSettings = !ShowSettings; }
+            ImGui.SameLine();
+            if (ImGui.Button("Fullscreen", new Vector2(90, 40))) { ShouldToggleFullscreen = true; }
             ImGui.SameLine();
             if (ImGui.Button("Reset", new Vector2(80, 40))) { ShouldReset = true; }
             ImGui.SameLine();
