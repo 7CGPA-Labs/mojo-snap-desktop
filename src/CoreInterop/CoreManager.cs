@@ -247,6 +247,8 @@ namespace EmuFrontend.CoreInterop
         public void InitAudioStream()
         {
             if (Raylib.IsAudioStreamReady(GameAudioStream)) Raylib.UnloadAudioStream(GameAudioStream);
+            
+            Raylib.SetAudioStreamBufferSizeDefault(1024);
             if (!Raylib.IsAudioDeviceReady()) Raylib.InitAudioDevice();
             
             GameAudioStream = Raylib.LoadAudioStream((uint)AVInfo.timing.sample_rate, 16, 2);
@@ -257,12 +259,6 @@ namespace EmuFrontend.CoreInterop
         {
             if (Raylib.IsAudioStreamReady(GameAudioStream))
             {
-                // Dynamic Rate Control: Throttle emulation based on audio buffer capacity
-                while (!Raylib.IsAudioStreamProcessed(GameAudioStream) && !Raylib.WindowShouldClose())
-                {
-                    System.Threading.Thread.Sleep(1);
-                }
-
                 unsafe
                 {
                     Raylib.UpdateAudioStream(GameAudioStream, data.ToPointer(), (int)frames);
