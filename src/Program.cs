@@ -83,50 +83,67 @@ namespace EmuFrontend
                                 pixelBuffer = new uint[count];
                             }
 
+                            byte* srcBase = (byte*)coreManager.FrameData.ToPointer();
+                            int pitch = (int)coreManager.FramePitch;
+                            int width = (int)coreManager.FrameWidth;
+                            int height = (int)coreManager.FrameHeight;
+
                             if (coreManager.PixelFormat == 1) // XRGB8888
                             {
-                                uint* src = (uint*)coreManager.FrameData.ToPointer();
                                 fixed (uint* dst = pixelBuffer)
                                 {
-                                    for (int i = 0; i < count; i++)
+                                    for (int y = 0; y < height; y++)
                                     {
-                                        uint p = src[i];
-                                        uint r = (p >> 16) & 0xFF;
-                                        uint g = (p >> 8) & 0xFF;
-                                        uint b = p & 0xFF;
-                                        dst[i] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
+                                        uint* srcLine = (uint*)(srcBase + y * pitch);
+                                        uint* dstLine = dst + y * width;
+                                        for (int x = 0; x < width; x++)
+                                        {
+                                            uint p = srcLine[x];
+                                            uint r = (p >> 16) & 0xFF;
+                                            uint g = (p >> 8) & 0xFF;
+                                            uint b = p & 0xFF;
+                                            dstLine[x] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
+                                        }
                                     }
                                     Raylib.UpdateTexture(gameTexture, dst);
                                 }
                             }
                             else if (coreManager.PixelFormat == 0) // 0RGB1555
                             {
-                                ushort* src = (ushort*)coreManager.FrameData.ToPointer();
                                 fixed (uint* dst = pixelBuffer)
                                 {
-                                    for (int i = 0; i < count; i++)
+                                    for (int y = 0; y < height; y++)
                                     {
-                                        ushort p = src[i];
-                                        uint r = (uint)((p >> 10) & 0x1F) << 3;
-                                        uint g = (uint)((p >> 5) & 0x1F) << 3;
-                                        uint b = (uint)(p & 0x1F) << 3;
-                                        dst[i] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
+                                        ushort* srcLine = (ushort*)(srcBase + y * pitch);
+                                        uint* dstLine = dst + y * width;
+                                        for (int x = 0; x < width; x++)
+                                        {
+                                            ushort p = srcLine[x];
+                                            uint r = (uint)((p >> 10) & 0x1F) << 3;
+                                            uint g = (uint)((p >> 5) & 0x1F) << 3;
+                                            uint b = (uint)(p & 0x1F) << 3;
+                                            dstLine[x] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
+                                        }
                                     }
                                     Raylib.UpdateTexture(gameTexture, dst);
                                 }
                             }
                             else if (coreManager.PixelFormat == 2) // RGB565
                             {
-                                ushort* src = (ushort*)coreManager.FrameData.ToPointer();
                                 fixed (uint* dst = pixelBuffer)
                                 {
-                                    for (int i = 0; i < count; i++)
+                                    for (int y = 0; y < height; y++)
                                     {
-                                        ushort p = src[i];
-                                        uint r = (uint)((p >> 11) & 0x1F) << 3;
-                                        uint g = (uint)((p >> 5) & 0x3F) << 2;
-                                        uint b = (uint)(p & 0x1F) << 3;
-                                        dst[i] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
+                                        ushort* srcLine = (ushort*)(srcBase + y * pitch);
+                                        uint* dstLine = dst + y * width;
+                                        for (int x = 0; x < width; x++)
+                                        {
+                                            ushort p = srcLine[x];
+                                            uint r = (uint)((p >> 11) & 0x1F) << 3;
+                                            uint g = (uint)((p >> 5) & 0x3F) << 2;
+                                            uint b = (uint)(p & 0x1F) << 3;
+                                            dstLine[x] = (0xFFu << 24) | (b << 16) | (g << 8) | r;
+                                        }
                                     }
                                     Raylib.UpdateTexture(gameTexture, dst);
                                 }
