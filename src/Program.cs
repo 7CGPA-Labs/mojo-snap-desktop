@@ -30,18 +30,60 @@ namespace EmuFrontend
             Raylib.InitWindow(1280, 720, "Libretro Frontend");
             Raylib.SetTargetFPS(60);
 
-            // Initialize the Raylib-ImGui integration layer
             rlImGui_cs.rlImGui.Setup(true);
 
             var overlay = new PlayerOverlay();
             var coreManager = new CoreManager();
+            
+            Texture2D gameTexture = new Texture2D();
+            bool textureInitialized = false;
 
             while (!Raylib.WindowShouldClose())
             {
                 Raylib.BeginDrawing();
-                Raylib.ClearBackground(Color.Black);
+                Raylib.ClearBackground(Color.DarkGray);
                 
-                // Start a new ImGui frame with rlImGui
+                if (overlay.CurrentState == ApplicationState.Gameplay)
+                {
+                    // Execute the Libretro core frame
+                    coreManager.RunFrame();
+
+                    if (coreManager.FrameData != IntPtr.Zero)
+                    {
+                        if (!textureInitialized || gameTexture.Width != coreManager.FrameWidth || gameTexture.Height != coreManager.FrameHeight)
+                        {
+                            if (textureInitialized) Raylib.UnloadTexture(gameTexture);
+                            
+                            Image img = Raylib.GenImageColor((int)coreManager.FrameWidth, (int)coreManager.FrameHeight, Color.Blank);
+                            img.Format = PixelFormat.UncompressedR8G8B8A8; // XRGB8888
+                            gameTexture = Raylib.LoadTextureFromImage(img);
+                            Raylib.UnloadImage(img);
+                            textureInitialized = true;
+                        }
+
+                        // Update GPU texture with native pixel buffer
+                        unsafe
+                        {
+                            Raylib.UpdateTexture(gameTexture, (void*)coreManager.FrameData);
+                        }
+                    }
+
+                    if (textureInitialized)
+                    {
+                        // Render centered and scaled
+                        float scale = Math.Min((float)Raylib.GetScreenWidth() / gameTexture.Width, (float)Raylib.GetScreenHeight() / gameTexture.Height);
+                        float targetW = gameTexture.Width * scale;
+                        float targetH = gameTexture.Height * scale;
+                        float offsetX = (Raylib.GetScreenWidth() - targetW) / 2.0f;
+                        float offsetY = (Raylib.GetScreenHeight() - targetH) / 2.0f;
+                        
+                        Rectangle sourceRec = new Rectangle(0, 0, gameTexture.Width, gameTexture.Height);
+                        Rectangle destRec = new Rectangle(offsetX, offsetY, targetW, targetH);
+                        
+                        Raylib.DrawTexturePro(gameTexture, sourceRec, destRec, Vector2.Zero, 0.0f, Color.White);
+                    }
+                }
+
                 rlImGui_cs.rlImGui.Begin();
 
                 if (overlay.CurrentState == ApplicationState.FileSelection)
@@ -53,15 +95,20 @@ namespace EmuFrontend
                         {
                             string core = coreManager.MatchCoreToExtension(overlay.SelectedRomPath);
                             coreManager.LoadCore(core);
-                            coreManager.LoadConfig(overlay.SelectedRomPath);
                             
-                            overlay.CurrentState = ApplicationState.Gameplay;
+                            if (coreManager.LoadGame(overlay.SelectedRomPath))
+                            {
+                                overlay.CurrentState = ApplicationState.Gameplay;
+                            }
+                            else
+                            {
+                                File.AppendAllText("crash.log", $"[{DateTime.Now}] Core rejected the ROM file.\n");
+                            }
                             overlay.ShouldLoadRom = false;
                         }
                         catch (Exception ex)
                         {
                             File.AppendAllText("crash.log", $"[{DateTime.Now}] Core Load Error: {ex.Message}\n");
-                            Console.WriteLine(ex.Message);
                             overlay.ShouldLoadRom = false;
                         }
                     }
@@ -79,20 +126,14 @@ namespace EmuFrontend
                         overlay.ShouldClose = false;
                     }
 
-                    if (overlay.IsRecording)
-                    {
-                        // Recording Logic Placeholder
-                    }
-
                     overlay.DrawPlaybackControls(Raylib.GetFPS(), Raylib.GetFrameTime() * 1000f);
                 }
 
-                // Render ImGui buffers to the screen using Raylib shapes and textures
                 rlImGui_cs.rlImGui.End();
-
                 Raylib.EndDrawing();
             }
 
+            if (textureInitialized) Raylib.UnloadTexture(gameTexture);
             rlImGui_cs.rlImGui.Shutdown();
             Raylib.CloseWindow();
         }
