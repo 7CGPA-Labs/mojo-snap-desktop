@@ -185,24 +185,47 @@ namespace EmuFrontend.CoreInterop
 
         private short InputStateCallbackImpl(uint port, uint device, uint index, uint id)
         {
-            if (port != 0 || device != 1) return 0; // Only Player 1 Joypad
-
+            if (device != 1) return 0; // Only Joypad
+            
             bool pressed = false;
-            switch (id)
+            
+            if (port == 0) // Player 1
             {
-                case 0: pressed = Raylib.IsKeyDown(KeyboardKey.Z); break; // B
-                case 1: pressed = Raylib.IsKeyDown(KeyboardKey.A); break; // Y
-                case 2: pressed = Raylib.IsKeyDown(KeyboardKey.RightShift); break; // Select
-                case 3: pressed = Raylib.IsKeyDown(KeyboardKey.Enter); break; // Start
-                case 4: pressed = Raylib.IsKeyDown(KeyboardKey.Up); break; // Up
-                case 5: pressed = Raylib.IsKeyDown(KeyboardKey.Down); break; // Down
-                case 6: pressed = Raylib.IsKeyDown(KeyboardKey.Left); break; // Left
-                case 7: pressed = Raylib.IsKeyDown(KeyboardKey.Right); break; // Right
-                case 8: pressed = Raylib.IsKeyDown(KeyboardKey.X); break; // A
-                case 9: pressed = Raylib.IsKeyDown(KeyboardKey.S); break; // X
-                case 10: pressed = Raylib.IsKeyDown(KeyboardKey.Q); break; // L
-                case 11: pressed = Raylib.IsKeyDown(KeyboardKey.W); break; // R
+                switch (id)
+                {
+                    case 0: pressed = Raylib.IsKeyDown(KeyboardKey.Z); break; // B
+                    case 1: pressed = Raylib.IsKeyDown(KeyboardKey.A); break; // Y
+                    case 2: pressed = Raylib.IsKeyDown(KeyboardKey.RightShift); break; // Select
+                    case 3: pressed = Raylib.IsKeyDown(KeyboardKey.Enter); break; // Start
+                    case 4: pressed = Raylib.IsKeyDown(KeyboardKey.Up); break; // Up
+                    case 5: pressed = Raylib.IsKeyDown(KeyboardKey.Down); break; // Down
+                    case 6: pressed = Raylib.IsKeyDown(KeyboardKey.Left); break; // Left
+                    case 7: pressed = Raylib.IsKeyDown(KeyboardKey.Right); break; // Right
+                    case 8: pressed = Raylib.IsKeyDown(KeyboardKey.X); break; // A
+                    case 9: pressed = Raylib.IsKeyDown(KeyboardKey.S); break; // X
+                    case 10: pressed = Raylib.IsKeyDown(KeyboardKey.Q); break; // L
+                    case 11: pressed = Raylib.IsKeyDown(KeyboardKey.W); break; // R
+                }
             }
+            else if (port == 1) // Player 2
+            {
+                switch (id)
+                {
+                    case 0: pressed = Raylib.IsKeyDown(KeyboardKey.C); break; // B
+                    case 1: pressed = Raylib.IsKeyDown(KeyboardKey.F); break; // Y
+                    case 2: pressed = Raylib.IsKeyDown(KeyboardKey.Tab); break; // Select
+                    case 3: pressed = Raylib.IsKeyDown(KeyboardKey.Space); break; // Start
+                    case 4: pressed = Raylib.IsKeyDown(KeyboardKey.I); break; // Up
+                    case 5: pressed = Raylib.IsKeyDown(KeyboardKey.K); break; // Down
+                    case 6: pressed = Raylib.IsKeyDown(KeyboardKey.J); break; // Left
+                    case 7: pressed = Raylib.IsKeyDown(KeyboardKey.L); break; // Right
+                    case 8: pressed = Raylib.IsKeyDown(KeyboardKey.V); break; // A
+                    case 9: pressed = Raylib.IsKeyDown(KeyboardKey.G); break; // X
+                    case 10: pressed = Raylib.IsKeyDown(KeyboardKey.U); break; // L
+                    case 11: pressed = Raylib.IsKeyDown(KeyboardKey.O); break; // R
+                }
+            }
+
             return (short)(pressed ? 1 : 0);
         }
     }
