@@ -295,25 +295,7 @@ namespace rlImGui_cs
                     icons_config->OversampleH = 2;
                     icons_config->OversampleV = 1;
 
-                    ushort[] IconRanges = new ushort[3];
-                    IconRanges[0] = IconFonts.FontAwesome6.IconMin;
-                    IconRanges[1] = IconFonts.FontAwesome6.IconMax;
-                    IconRanges[2] = 0;
-
-                    fixed (ushort* range = &IconRanges[0])
-                    {
-                        // this unmanaged memory must remain allocated for the entire run of rlImgui
-                        IconFonts.FontAwesome6.IconFontRanges = Marshal.AllocHGlobal(6);
-                        Buffer.MemoryCopy(range, IconFonts.FontAwesome6.IconFontRanges.ToPointer(), 6, 6);
-                        icons_config->GlyphRanges = (ushort*)IconFonts.FontAwesome6.IconFontRanges.ToPointer();
-
-                        byte[] fontDataBuffer = Convert.FromBase64String(IconFonts.FontAwesome6.IconFontData);
-
-                        fixed (byte* buffer = fontDataBuffer)
-                        {
-                            var fontPtr = ImGui.GetIO().Fonts.AddFontFromMemoryTTF(new IntPtr(buffer), fontDataBuffer.Length, 11, icons_config, IconFonts.FontAwesome6.IconFontRanges);
-                        }
-                    }
+                    // FontAwesome loading disabled due to missing dependency
 
                     ImGuiNative.ImFontConfig_destroy(icons_config);
                 }
@@ -335,10 +317,10 @@ namespace rlImGui_cs
             unsafe
             {
                 SetClipCallback = new SetClipTextCallback(rlImGuiSetClipText);
-                platformIO.Platform_SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(SetClipCallback);
+                // platformIO.Platform_SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(SetClipCallback);
 
                 GetClipCallback = new GetClipTextCallback(rImGuiGetClipText);
-                platformIO.Platform_GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(GetClipCallback);
+                // platformIO.Platform_GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(GetClipCallback);
             }
 
             platformIO.Platform_ClipboardUserData = IntPtr.Zero;
@@ -654,12 +636,7 @@ namespace rlImGui_cs
 
             if (LoadFontAwesome)
             {
-                {
-                    if (IconFonts.FontAwesome6.IconFontRanges != IntPtr.Zero)
-                        Marshal.FreeHGlobal(IconFonts.FontAwesome6.IconFontRanges);
-
-                    IconFonts.FontAwesome6.IconFontRanges = IntPtr.Zero;
-                }
+                // FontAwesome cleanup disabled
             }
         }
 
