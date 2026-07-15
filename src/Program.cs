@@ -26,6 +26,7 @@ namespace EmuFrontend
 
         static void Run()
         {
+            Raylib.SetConfigFlags(ConfigFlags.ResizableWindow);
             Raylib.InitWindow(1280, 720, "Libretro Frontend");
             Raylib.SetTargetFPS(60);
 
