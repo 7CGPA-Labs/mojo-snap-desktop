@@ -1,3 +1,4 @@
+#nullable disable
 /*******************************************************************************************
 *
 *   raylib-extras [ImGui] example - Simple Integration
