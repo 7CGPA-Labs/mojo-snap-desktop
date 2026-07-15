@@ -29,25 +29,19 @@ namespace EmuFrontend
             Raylib.InitWindow(1280, 720, "Libretro Frontend");
             Raylib.SetTargetFPS(60);
 
-            var ctx = ImGui.CreateContext();
-            ImGui.SetCurrentContext(ctx);
-            
-            // Build the default font atlas to prevent C++ IM_ASSERT aborts on NewFrame
-            ImGui.GetIO().Fonts.Build();
+            // Initialize the Raylib-ImGui integration layer
+            rlImGui_cs.rlImGui.Setup(true);
 
             var overlay = new PlayerOverlay();
             var coreManager = new CoreManager();
 
             while (!Raylib.WindowShouldClose())
             {
-                var io = ImGui.GetIO();
-                io.DisplaySize = new Vector2(Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
-                io.DeltaTime = Raylib.GetFrameTime() > 0 ? Raylib.GetFrameTime() : 1.0f / 60.0f;
-                
-                ImGui.NewFrame();
-
                 Raylib.BeginDrawing();
                 Raylib.ClearBackground(Color.Black);
+                
+                // Start a new ImGui frame with rlImGui
+                rlImGui_cs.rlImGui.Begin();
 
                 if (overlay.CurrentState == ApplicationState.FileSelection)
                 {
@@ -92,11 +86,13 @@ namespace EmuFrontend
                     overlay.DrawPlaybackControls(Raylib.GetFPS(), Raylib.GetFrameTime() * 1000f);
                 }
 
-                ImGui.Render();
+                // Render ImGui buffers to the screen using Raylib shapes and textures
+                rlImGui_cs.rlImGui.End();
+
                 Raylib.EndDrawing();
             }
 
-            ImGui.DestroyContext();
+            rlImGui_cs.rlImGui.Shutdown();
             Raylib.CloseWindow();
         }
     }
