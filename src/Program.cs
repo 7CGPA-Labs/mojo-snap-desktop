@@ -4,6 +4,7 @@ using Raylib_cs;
 using ImGuiNET;
 using EmuFrontend.UI;
 using EmuFrontend.CoreInterop;
+using System.Numerics;
 
 namespace EmuFrontend
 {
@@ -15,18 +16,23 @@ namespace EmuFrontend
             Raylib.InitWindow(1280, 720, "Libretro Frontend");
             Raylib.SetTargetFPS(60);
 
-            // Note: In a full integration, rlImGui setup would happen here
-            // rlImGui.Setup(true);
+            // Initialize ImGui Context to prevent crashes when ImGui methods are called
+            var ctx = ImGui.CreateContext();
+            ImGui.SetCurrentContext(ctx);
 
             var overlay = new PlayerOverlay();
             var coreManager = new CoreManager();
 
             while (!Raylib.WindowShouldClose())
             {
+                var io = ImGui.GetIO();
+                io.DisplaySize = new Vector2(Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
+                io.DeltaTime = Raylib.GetFrameTime() > 0 ? Raylib.GetFrameTime() : 1.0f / 60.0f;
+                
+                ImGui.NewFrame();
+
                 Raylib.BeginDrawing();
                 Raylib.ClearBackground(Color.Black);
-                
-                // rlImGui.Begin();
 
                 if (overlay.CurrentState == ApplicationState.FileSelection)
                 {
@@ -51,7 +57,6 @@ namespace EmuFrontend
                 }
                 else if (overlay.CurrentState == ApplicationState.Gameplay)
                 {
-                    // Intercept Reset buttons
                     if (overlay.ShouldReset)
                     {
                         coreManager.RetroReset?.Invoke();
@@ -63,25 +68,21 @@ namespace EmuFrontend
                         overlay.ShouldClose = false;
                     }
 
-                    // Render game texture logic based on Aspect Ratio and Graphic Smoothing
-                    // (Placeholder for core output rendering)
-                    
-                    // Recording Logic Placeholder
                     if (overlay.IsRecording)
                     {
-                        // Safely capture byte buffer array from Raylib's RenderTexture2D
-                        // Write to output stream via optimized thread
+                        // Recording Logic Placeholder
                     }
 
-                    // Render full ImGui media control array
                     overlay.DrawPlaybackControls(Raylib.GetFPS(), Raylib.GetFrameTime() * 1000f);
                 }
 
-                // rlImGui.End();
+                ImGui.Render();
+                // Note: A full ImGui-to-Raylib rendering backend loop is required here to visually draw the ImGui data to the screen.
+
                 Raylib.EndDrawing();
             }
 
-            // rlImGui.Shutdown();
+            ImGui.DestroyContext();
             Raylib.CloseWindow();
         }
     }
