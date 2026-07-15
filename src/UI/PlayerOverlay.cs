@@ -122,7 +122,9 @@ namespace EmuFrontend.UI
                 ImGui.SetNextWindowPos(new Vector2(50, 50), ImGuiCond.FirstUseEver);
                 ImGui.SetNextWindowSize(new Vector2(400, 300), ImGuiCond.FirstUseEver);
                 ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.1f, 0.1f, 0.1f, 0.95f));
-                ImGui.Begin("Advanced Settings", ref ShowSettings);
+                bool show = ShowSettings;
+                ImGui.Begin("Advanced Settings", ref show);
+                ShowSettings = show;
                 
                 bool vsync = VSync;
                 if (ImGui.Checkbox("VSync", ref vsync)) VSync = vsync;
