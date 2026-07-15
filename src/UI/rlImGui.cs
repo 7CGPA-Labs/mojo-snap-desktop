@@ -323,7 +323,7 @@ namespace rlImGui_cs
                 // platformIO.Platform_GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(GetClipCallback);
             }
 
-            platformIO.Platform_ClipboardUserData = IntPtr.Zero;
+            // platformIO.Platform_ClipboardUserData = IntPtr.Zero;
             ReloadFonts();
         }
 
