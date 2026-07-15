@@ -19,12 +19,12 @@
 
   <Target Name="FetchCoresBeforeBuildWindows" BeforeTargets="PrepareForPublish;BeforeBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <Message Text="Fetching cores for Windows..." Importance="high" />
-    <Exec Command="powershell -Command &quot;if (-not (Test-Path 'cores')) { New-Item -ItemType Directory -Path 'cores' }; $cores = @('fceumm', 'snes9x', 'genesis_plus_gx', 'gambatte', 'mgba', 'pcsx_rearmed', 'dosbox_pure'); foreach ($core in $cores) { $url = 'https://buildbot.libretro.com/nightly/windows/x86_64/latest/' + $core + '_libretro.dll.zip'; $dest = 'cores\' + $core + '.zip'; if (-not (Test-Path $dest)) { Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -Path $dest -DestinationPath cores -Force } }&quot;" IgnoreExitCode="true" />
+    <Exec Command="powershell -Command &quot;if (-not (Test-Path 'cores')) { New-Item -ItemType Directory -Path 'cores' }; $cores = @('fceumm', 'snes9x', 'genesis_plus_gx', 'gambatte', 'mgba', 'pcsx_rearmed', 'dosbox_pure'); foreach ($core in $cores) { $url = 'https://buildbot.libretro.com/nightly/windows/x86_64/latest/' + $core + '_libretro.dll.zip'; $dest = 'cores\' + $core + '.zip'; if (-not (Test-Path $dest)) { Write-Host 'Downloading' $core '...'; Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -Path $dest -DestinationPath cores -Force } else { Write-Host 'Skipping' $core '- already downloaded.' } }&quot;" IgnoreExitCode="true" />
   </Target>
 
   <Target Name="FetchCoresBeforeBuildLinux" BeforeTargets="PrepareForPublish;BeforeBuild" Condition="$([MSBuild]::IsOSPlatform('Linux'))">
     <Message Text="Fetching cores for Linux..." Importance="high" />
-    <Exec Command="bash -c 'mkdir -p cores; for c in fceumm snes9x genesis_plus_gx gambatte mgba pcsx_rearmed dosbox_pure; do dest=&quot;cores/$c.zip&quot;; if [ ! -f &quot;$dest&quot; ]; then curl -sL &quot;https://buildbot.libretro.com/nightly/linux/x86_64/latest/${c}_libretro.so.zip&quot; -o &quot;$dest&quot;; unzip -qo &quot;$dest&quot; -d cores; fi; done'" IgnoreExitCode="true" />
+    <Exec Command="bash -c 'mkdir -p cores; for c in fceumm snes9x genesis_plus_gx gambatte mgba pcsx_rearmed dosbox_pure; do dest=&quot;cores/$c.zip&quot;; url=&quot;https://buildbot.libretro.com/nightly/linux/x86_64/latest/${c}_libretro.so.zip&quot;; if [ ! -f &quot;$dest&quot; ]; then echo &quot;Downloading $c...&quot;; curl -sL &quot;$url&quot; -o &quot;$dest&quot;; unzip -qo &quot;$dest&quot; -d cores; else echo &quot;Skipping $c - already downloaded.&quot;; fi; done'" IgnoreExitCode="true" />
   </Target>
 
 </Project>
