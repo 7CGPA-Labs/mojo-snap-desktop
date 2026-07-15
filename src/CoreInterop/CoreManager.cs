@@ -248,7 +248,7 @@ namespace EmuFrontend.CoreInterop
         {
             if (Raylib.IsAudioStreamReady(GameAudioStream)) Raylib.UnloadAudioStream(GameAudioStream);
             
-            Raylib.SetAudioStreamBufferSizeDefault(1024);
+            Raylib.SetAudioStreamBufferSizeDefault(4096);
             if (!Raylib.IsAudioDeviceReady()) Raylib.InitAudioDevice();
             
             GameAudioStream = Raylib.LoadAudioStream((uint)AVInfo.timing.sample_rate, 16, 2);
