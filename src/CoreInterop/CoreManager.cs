@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using Raylib_cs;
+using System.Collections.Concurrent;
 
 namespace EmuFrontend.CoreInterop
 {
@@ -244,6 +245,8 @@ namespace EmuFrontend.CoreInterop
             return (short)(pressed ? 1 : 0);
         }
 
+        private ConcurrentQueue<short> audioQueue = new ConcurrentQueue<short>();
+
         public void InitAudioStream()
         {
             if (Raylib.IsAudioStreamReady(GameAudioStream)) Raylib.UnloadAudioStream(GameAudioStream);
@@ -253,18 +256,49 @@ namespace EmuFrontend.CoreInterop
             
             GameAudioStream = Raylib.LoadAudioStream((uint)AVInfo.timing.sample_rate, 16, 2);
             Raylib.PlayAudioStream(GameAudioStream);
+            while (audioQueue.TryDequeue(out _)) { }
         }
 
         private UIntPtr AudioBatchCallbackImpl(IntPtr data, UIntPtr frames)
         {
-            if (Raylib.IsAudioStreamReady(GameAudioStream))
+            unsafe
             {
-                unsafe
+                short* src = (short*)data.ToPointer();
+                int count = (int)frames * 2;
+                for (int i = 0; i < count; i++)
                 {
-                    Raylib.UpdateAudioStream(GameAudioStream, data.ToPointer(), (int)frames);
+                    audioQueue.Enqueue(src[i]);
                 }
             }
             return frames;
+        }
+
+        public void UpdateAudio()
+        {
+            if (Raylib.IsAudioStreamReady(GameAudioStream) && Raylib.IsAudioStreamProcessed(GameAudioStream))
+            {
+                int samplesNeeded = 4096 * 2; 
+                if (audioQueue.Count >= samplesNeeded)
+                {
+                    short[] chunk = new short[samplesNeeded];
+                    for (int i = 0; i < samplesNeeded; i++)
+                    {
+                        audioQueue.TryDequeue(out chunk[i]);
+                    }
+                    unsafe
+                    {
+                        fixed (short* ptr = chunk)
+                        {
+                            Raylib.UpdateAudioStream(GameAudioStream, ptr, 4096);
+                        }
+                    }
+                }
+                
+                while (audioQueue.Count > 4096 * 4)
+                {
+                    audioQueue.TryDequeue(out _);
+                }
+            }
         }
     }
 }

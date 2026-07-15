@@ -59,6 +59,8 @@ namespace EmuFrontend
                         coreManager.RunFrame();
                         accumulator -= targetFrameTime;
                     }
+                    
+                    coreManager.UpdateAudio();
 
                     if (coreManager.FrameData != IntPtr.Zero)
                     {
