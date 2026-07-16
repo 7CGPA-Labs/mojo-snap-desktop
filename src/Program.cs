@@ -28,8 +28,16 @@ namespace EmuFrontend
         static void Run()
         {
             Raylib.SetConfigFlags(ConfigFlags.ResizableWindow);
-            Raylib.InitWindow(1280, 720, "Libretro Frontend");
+            Raylib.InitWindow(1280, 720, "Mojo Snap");
             Raylib.SetTargetFPS(60);
+            
+            string logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets", "logo96.png");
+            if (File.Exists(logoPath))
+            {
+                Image logo = Raylib.LoadImage(logoPath);
+                Raylib.SetWindowIcon(logo);
+                Raylib.UnloadImage(logo);
+            }
 
             rlImGui_cs.rlImGui.Setup(true);
 
@@ -219,6 +227,8 @@ namespace EmuFrontend
                             {
                                 overlay.CurrentState = ApplicationState.Gameplay;
                                 coreManager.InitAudioStream();
+                                string romName = Path.GetFileNameWithoutExtension(overlay.SelectedRomPath);
+                                Raylib.SetWindowTitle($"Mojo Snap - {romName} ({core})");
                             }
                             else
                             {
@@ -259,6 +269,7 @@ namespace EmuFrontend
                     {
                         overlay.CurrentState = ApplicationState.FileSelection;
                         overlay.ShouldClose = false;
+                        Raylib.SetWindowTitle("Mojo Snap");
                     }
 
                     overlay.DrawPlaybackControls(Raylib.GetFPS(), Raylib.GetFrameTime() * 1000f, coreManager);
