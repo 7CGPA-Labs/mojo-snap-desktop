@@ -297,7 +297,7 @@ namespace rlImGui_cs
                     icons_config->OversampleV = 1;
 
                     IconFontRanges = System.Runtime.InteropServices.Marshal.AllocHGlobal(6);
-                    short[] ranges = new short[] { 0xE000, unchecked((short)0xF8FF), 0 };
+                    short[] ranges = new short[] { unchecked((short)0xE000), unchecked((short)0xF8FF), 0 };
                     System.Runtime.InteropServices.Marshal.Copy(ranges, 0, IconFontRanges, 3);
 
                     ImGui.GetIO().Fonts.AddFontFromFileTTF("fonts/fa-solid-900.ttf", 16.0f, icons_config, IconFontRanges);
