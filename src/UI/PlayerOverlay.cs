@@ -214,8 +214,75 @@ namespace EmuFrontend.UI
             ImGui.SetCursorPosY(currentY);
             ImGui.SameLine();
             
-            if (ImGui.Button("\uf013", new Vector2(40, 40))) { ShowSettings = !ShowSettings; }
+            if (ImGui.Button("\uf013", new Vector2(40, 40)))
+            {
+                ImGui.OpenPopup("SettingsPopup");
+            }
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Settings");
+            
+            ImGui.SetNextWindowPos(new Vector2(windowWidth - 280, windowHeight - barHeight - 250), ImGuiCond.Appearing);
+            if (ImGui.BeginPopup("SettingsPopup"))
+            {
+                if (ImGui.BeginMenu("Graphics Settings"))
+                {
+                    ImGui.MenuItem("Shaders", "Disabled");
+                    ImGui.MenuItem("Hardware Acceleration", "Native AOT");
+                    ImGui.MenuItem("FPS", "hide");
+                    
+                    bool vsync = VSync;
+                    if (ImGui.MenuItem("VSync", vsync ? "Enabled" : "Disabled")) { VSync = !vsync; }
+                    
+                    ImGui.MenuItem("Video Rotation", "0 deg");
+                    
+                    bool smooth = GraphicSmoothing;
+                    if (ImGui.MenuItem("Bilinear Filtering", smooth ? "Enabled" : "Disabled")) { GraphicSmoothing = !smooth; }
+                    
+                    ImGui.EndMenu();
+                }
+                
+                if (ImGui.BeginMenu("Screen Capture"))
+                {
+                    ImGui.MenuItem("Screenshot Source", "Native Canvas");
+                    ImGui.MenuItem("Screenshot Format", "png");
+                    ImGui.MenuItem("Screenshot Upscale", "1x");
+                    ImGui.MenuItem("Screen Recording FPS", "60");
+                    ImGui.MenuItem("Screen Recording Format", "mp4");
+                    ImGui.MenuItem("Screen Recording Upscale", "1x");
+                    ImGui.EndMenu();
+                }
+                
+                if (ImGui.BeginMenu("Speed Options"))
+                {
+                    ImGui.MenuItem("Fast Forward", "Disabled");
+                    ImGui.MenuItem("Slow Motion", "Disabled");
+                    ImGui.EndMenu();
+                }
+                
+                if (ImGui.BeginMenu("Input Options"))
+                {
+                    ImGui.MenuItem("Menubar Mouse Trigger", "Downward Movement");
+                    ImGui.MenuItem("Direct Keyboard Input", "Disabled");
+                    ImGui.MenuItem("Forward Alt key", "Disabled");
+                    ImGui.MenuItem("Lock Mouse", "Disabled");
+                    ImGui.EndMenu();
+                }
+                
+                if (ImGui.BeginMenu("Save States"))
+                {
+                    ImGui.MenuItem("Load State");
+                    ImGui.MenuItem("Save State");
+                    ImGui.MenuItem("Change Slot");
+                    ImGui.EndMenu();
+                }
+                
+                if (ImGui.BeginMenu("Backend Core Options"))
+                {
+                    ImGui.MenuItem("Core-specific settings for ROM");
+                    ImGui.EndMenu();
+                }
+                
+                ImGui.EndPopup();
+            }
             ImGui.SameLine();
             
             if (ImGui.Button("\uf065", new Vector2(40, 40))) { ShouldToggleFullscreen = true; }
@@ -231,63 +298,7 @@ namespace EmuFrontend.UI
             ImGui.PopStyleVar(3);
             ImGui.PopStyleColor(2);
 
-            // Drawer Settings
-            if (ShowSettings)
-            {
-                ImGui.SetNextWindowPos(new Vector2(20, ImGui.GetIO().DisplaySize.Y - barHeight - 420), ImGuiCond.Always);
-                ImGui.SetNextWindowSize(new Vector2(350, 400), ImGuiCond.Always);
-                ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.12f, 0.12f, 0.14f, 0.98f));
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f);
-                
-                bool show = ShowSettings;
-                if (ImGui.Begin("Settings Drawer", ref show, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove))
-                {
-                    if (ImGui.BeginTabBar("SettingsTabs"))
-                    {
-                        if (ImGui.BeginTabItem("Video"))
-                        {
-                            ImGui.Spacing();
-                            bool vsync = VSync;
-                            if (ImGui.Checkbox("VSync", ref vsync)) VSync = vsync;
-                            
-                            bool smooth = GraphicSmoothing;
-                            if (ImGui.Checkbox("Bilinear Filtering", ref smooth)) GraphicSmoothing = smooth;
-                            
-                            int ar = AspectRatioSelection;
-                            if (ImGui.Combo("Aspect Ratio", ref ar, "4:3 Original\016:9 Stretch\0Integer Scaling\0")) AspectRatioSelection = ar;
-                            
-                            ImGui.EndTabItem();
-                        }
-                        if (ImGui.BeginTabItem("Audio"))
-                        {
-                            ImGui.Spacing();
-                            ImGui.Text("Volume controls are available on the bottom bar.");
-                            ImGui.EndTabItem();
-                        }
-                        if (ImGui.BeginTabItem("Cheats"))
-                        {
-                            ImGui.Spacing();
-                            ImGui.InputText("Code", ref cheatCodeInput, 256);
-                            if (ImGui.Button("Apply Cheat", new Vector2(120, 30)))
-                            {
-                                // Implementation pending core hook
-                                cheatCodeInput = string.Empty;
-                            }
-                            ImGui.SameLine();
-                            if (ImGui.Button("Clear All", new Vector2(120, 30)))
-                            {
-                                // Implementation pending core hook
-                            }
-                            ImGui.EndTabItem();
-                        }
-                        ImGui.EndTabBar();
-                    }
-                }
-                ImGui.End();
-                ShowSettings = show;
-                ImGui.PopStyleVar();
-                ImGui.PopStyleColor();
-            }
+            // Removed old Settings Drawer
 
             // Drawer Controller Settings
             if (ShowControllerSettings)
