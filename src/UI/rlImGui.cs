@@ -265,6 +265,7 @@ namespace rlImGui_cs
 
         public static bool LoadDefaultFont = true;
         public static bool LoadFontAwesome = true;
+        private static IntPtr IconFontRanges = IntPtr.Zero;
 
         /// <summary>
         /// End Custom initialization. Not needed if you call Setup. Only needed if you want to add custom setup code.
@@ -283,7 +284,6 @@ namespace rlImGui_cs
 
             if (LoadFontAwesome)
             {
-                // remove this part if you don't want font awesome
                 unsafe
                 {
                     ImFontConfig* icons_config = ImGuiNative.ImFontConfig_ImFontConfig();
@@ -296,7 +296,11 @@ namespace rlImGui_cs
                     icons_config->OversampleH = 2;
                     icons_config->OversampleV = 1;
 
-                    // FontAwesome loading disabled due to missing dependency
+                    IconFontRanges = System.Runtime.InteropServices.Marshal.AllocHGlobal(6);
+                    short[] ranges = new short[] { 0xE000, unchecked((short)0xF8FF), 0 };
+                    System.Runtime.InteropServices.Marshal.Copy(ranges, 0, IconFontRanges, 3);
+
+                    ImGui.GetIO().Fonts.AddFontFromFileTTF("fonts/fa-solid-900.ttf", 16.0f, icons_config, IconFontRanges);
 
                     ImGuiNative.ImFontConfig_destroy(icons_config);
                 }
@@ -637,7 +641,11 @@ namespace rlImGui_cs
 
             if (LoadFontAwesome)
             {
-                // FontAwesome cleanup disabled
+                if (IconFontRanges != IntPtr.Zero)
+                {
+                    System.Runtime.InteropServices.Marshal.FreeHGlobal(IconFontRanges);
+                    IconFontRanges = IntPtr.Zero;
+                }
             }
         }
 
