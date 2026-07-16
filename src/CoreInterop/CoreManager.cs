@@ -26,6 +26,9 @@ namespace EmuFrontend.CoreInterop
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_input_poll_t();
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate short retro_input_state_t(uint port, uint device, uint index, uint id);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_reset_t();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate UIntPtr retro_serialize_size_t();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate bool retro_serialize_t(IntPtr data, UIntPtr size);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate bool retro_unserialize_t(IntPtr data, UIntPtr size);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct retro_game_info { public IntPtr path; public IntPtr data; public UIntPtr size; public IntPtr meta; }
@@ -46,6 +49,9 @@ namespace EmuFrontend.CoreInterop
         public retro_run_t? RetroRun;
         public retro_load_game_t? RetroLoadGame;
         public retro_reset_t? RetroReset;
+        public retro_serialize_size_t? RetroSerializeSize;
+        public retro_serialize_t? RetroSerialize;
+        public retro_unserialize_t? RetroUnserialize;
 
         private retro_environment_t? EnvCallback;
         private retro_video_refresh_t? VideoCallback;
@@ -99,6 +105,9 @@ namespace EmuFrontend.CoreInterop
             RetroLoadGame = GetExport<retro_load_game_t>("retro_load_game");
             RetroReset = GetExport<retro_reset_t>("retro_reset");
             RetroGetSystemAvInfo = GetExport<retro_get_system_av_info_t>("retro_get_system_av_info");
+            RetroSerializeSize = GetExport<retro_serialize_size_t>("retro_serialize_size");
+            RetroSerialize = GetExport<retro_serialize_t>("retro_serialize");
+            RetroUnserialize = GetExport<retro_unserialize_t>("retro_unserialize");
 
             var setEnv = GetExport<retro_set_environment_t>("retro_set_environment");
             var setVideo = GetExport<retro_set_video_refresh_t>("retro_set_video_refresh");
@@ -169,6 +178,38 @@ namespace EmuFrontend.CoreInterop
         public void RunFrame()
         {
             RetroRun?.Invoke();
+        }
+
+        public void SaveState(int slot)
+        {
+            if (RetroSerializeSize == null || RetroSerialize == null) return;
+            UIntPtr size = RetroSerializeSize();
+            if (size == UIntPtr.Zero) return;
+            
+            IntPtr buffer = Marshal.AllocHGlobal((int)size);
+            if (RetroSerialize(buffer, size))
+            {
+                byte[] data = new byte[(int)size];
+                Marshal.Copy(buffer, data, 0, (int)size);
+                File.WriteAllBytes($"state_{slot}.sav", data);
+                Logger.Info($"Saved state to slot {slot}");
+            }
+            Marshal.FreeHGlobal(buffer);
+        }
+
+        public void LoadState(int slot)
+        {
+            if (RetroUnserialize == null || !File.Exists($"state_{slot}.sav")) return;
+            
+            byte[] data = File.ReadAllBytes($"state_{slot}.sav");
+            IntPtr buffer = Marshal.AllocHGlobal(data.Length);
+            Marshal.Copy(data, 0, buffer, data.Length);
+            
+            if (RetroUnserialize(buffer, (UIntPtr)data.Length))
+            {
+                Logger.Info($"Loaded state from slot {slot}");
+            }
+            Marshal.FreeHGlobal(buffer);
         }
 
         public void LoadConfig(string path) {}

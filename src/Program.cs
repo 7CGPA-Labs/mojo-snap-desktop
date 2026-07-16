@@ -54,12 +54,28 @@ namespace EmuFrontend
                     accumulator += dt;
                     if (accumulator > 0.1) accumulator = 0.1;
 
-                    while (accumulator >= targetFrameTime)
+                    if (!overlay.IsPaused)
                     {
-                        coreManager.RunFrame();
-                        accumulator -= targetFrameTime;
+                        if (overlay.IsFastForward)
+                        {
+                            // Ignore timing and run multiple frames for Fast Forward
+                            for (int i = 0; i < 4; i++) coreManager.RunFrame();
+                            accumulator = 0.0;
+                        }
+                        else
+                        {
+                            while (accumulator >= targetFrameTime)
+                            {
+                                coreManager.RunFrame();
+                                accumulator -= targetFrameTime;
+                            }
+                        }
                     }
                     
+                    if (Raylib.IsAudioStreamReady(coreManager.GameAudioStream))
+                    {
+                        Raylib.SetAudioStreamVolume(coreManager.GameAudioStream, overlay.IsMuted ? 0.0f : overlay.MasterVolume);
+                    }
                     coreManager.UpdateAudio();
 
                     if (coreManager.FrameData != IntPtr.Zero)
@@ -154,15 +170,35 @@ namespace EmuFrontend
                     if (textureInitialized)
                     {
                         // Render centered and scaled
-                        float scale = Math.Min((float)Raylib.GetScreenWidth() / gameTexture.Width, (float)Raylib.GetScreenHeight() / gameTexture.Height);
-                        float targetW = gameTexture.Width * scale;
-                        float targetH = gameTexture.Height * scale;
+                        float targetW = gameTexture.Width;
+                        float targetH = gameTexture.Height;
+
+                        if (overlay.AspectRatioSelection == 0) // 4:3 Original (or Aspect Preserved)
+                        {
+                            float scale = Math.Min((float)Raylib.GetScreenWidth() / gameTexture.Width, (float)Raylib.GetScreenHeight() / gameTexture.Height);
+                            targetW = gameTexture.Width * scale;
+                            targetH = gameTexture.Height * scale;
+                        }
+                        else if (overlay.AspectRatioSelection == 1) // 16:9 Stretch (Fill)
+                        {
+                            targetW = Raylib.GetScreenWidth();
+                            targetH = Raylib.GetScreenHeight();
+                        }
+                        else if (overlay.AspectRatioSelection == 2) // Integer Scaling
+                        {
+                            float scale = (float)Math.Floor(Math.Min((float)Raylib.GetScreenWidth() / gameTexture.Width, (float)Raylib.GetScreenHeight() / gameTexture.Height));
+                            if (scale < 1.0f) scale = 1.0f;
+                            targetW = gameTexture.Width * scale;
+                            targetH = gameTexture.Height * scale;
+                        }
+                        
                         float offsetX = (Raylib.GetScreenWidth() - targetW) / 2.0f;
                         float offsetY = (Raylib.GetScreenHeight() - targetH) / 2.0f;
                         
                         Rectangle sourceRec = new Rectangle(0, 0, gameTexture.Width, gameTexture.Height);
                         Rectangle destRec = new Rectangle(offsetX, offsetY, targetW, targetH);
                         
+                        Raylib.SetTextureFilter(gameTexture, overlay.GraphicSmoothing ? TextureFilter.Bilinear : TextureFilter.Point);
                         Raylib.DrawTexturePro(gameTexture, sourceRec, destRec, Vector2.Zero, 0.0f, Color.White);
                     }
                 }
@@ -208,6 +244,16 @@ namespace EmuFrontend
                     {
                         coreManager.RetroReset?.Invoke();
                         overlay.ShouldReset = false;
+                    }
+                    if (overlay.ShouldSaveState)
+                    {
+                        coreManager.SaveState(overlay.SaveStateSlot);
+                        overlay.ShouldSaveState = false;
+                    }
+                    if (overlay.ShouldLoadState)
+                    {
+                        coreManager.LoadState(overlay.SaveStateSlot);
+                        overlay.ShouldLoadState = false;
                     }
                     if (overlay.ShouldClose)
                     {

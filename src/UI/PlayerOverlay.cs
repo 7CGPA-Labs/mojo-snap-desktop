@@ -124,7 +124,7 @@ namespace EmuFrontend.UI
         {
             float windowWidth = ImGui.GetIO().DisplaySize.X;
             float windowHeight = ImGui.GetIO().DisplaySize.Y;
-            float barHeight = 65;
+            float barHeight = 50;
             
             bool isMouseNearBottom = ImGui.GetIO().MousePos.Y > windowHeight - 120;
             if (!isMouseNearBottom && !ShowSettings) return;
@@ -143,30 +143,52 @@ namespace EmuFrontend.UI
             {
                 // Left Column
                 ImGui.TableNextColumn();
-                if (ImGui.Button("Settings", new Vector2(90, 40))) { ShowSettings = !ShowSettings; }
+                if (ImGui.Button("\u2699", new Vector2(40, 40))) { ShowSettings = !ShowSettings; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Settings");
                 ImGui.SameLine();
-                if (ImGui.Button("Fullscreen", new Vector2(90, 40))) { ShouldToggleFullscreen = true; }
+                if (ImGui.Button("\u26F6", new Vector2(40, 40))) { ShouldToggleFullscreen = true; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fullscreen");
                 ImGui.SameLine();
-                if (ImGui.Button("Reset", new Vector2(80, 40))) { ShouldReset = true; }
+                if (ImGui.Button("\u21BA", new Vector2(40, 40))) { ShouldReset = true; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset Core");
                 ImGui.SameLine();
-                if (ImGui.Button("Close", new Vector2(80, 40))) { ShouldClose = true; }
+                
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.6f, 0.2f, 0.2f, 1.0f));
+                if (ImGui.Button("\u2716", new Vector2(40, 40))) { ShouldClose = true; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Close ROM");
+                ImGui.PopStyleColor();
 
                 // Center Column
                 ImGui.TableNextColumn();
-                float centerOffset = (ImGui.GetColumnWidth() / 2) - 130;
+                float centerOffset = (ImGui.GetColumnWidth() / 2) - 150;
                 if (centerOffset > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + centerOffset);
 
-                if (ImGui.Button(IsPaused ? "Play" : "Pause", new Vector2(80, 40))) { IsPaused = !IsPaused; }
+                if (ImGui.Button(IsPaused ? "\u25B6" : "\u23F8", new Vector2(40, 40))) { IsPaused = !IsPaused; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip(IsPaused ? "Play" : "Pause");
                 ImGui.SameLine();
                 
                 ImGui.PushStyleColor(ImGuiCol.Button, IsFastForward ? new Vector4(0.8f, 0.4f, 0.0f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-                if (ImGui.Button("Fast Fwd", new Vector2(80, 40))) { IsFastForward = !IsFastForward; }
+                if (ImGui.Button("\u23E9", new Vector2(40, 40))) { IsFastForward = !IsFastForward; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fast Forward");
                 ImGui.PopStyleColor();
                 ImGui.SameLine();
                 
                 ImGui.PushStyleColor(ImGuiCol.Button, IsRecording ? new Vector4(0.8f, 0.1f, 0.1f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-                if (ImGui.Button("Record", new Vector2(80, 40))) { IsRecording = !IsRecording; }
+                if (ImGui.Button("\u23FA", new Vector2(40, 40))) { IsRecording = !IsRecording; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Record");
                 ImGui.PopStyleColor();
+                ImGui.SameLine();
+                
+                if (ImGui.Button(IsMuted ? "x" : "\u266B", new Vector2(40, 40))) { IsMuted = !IsMuted; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip(IsMuted ? "Unmute" : "Mute");
+                ImGui.SameLine();
+                
+                ImGui.SetNextItemWidth(80);
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 10);
+                float vol = MasterVolume;
+                if (ImGui.SliderFloat("##Vol", ref vol, 0.0f, 1.0f, "")) MasterVolume = vol;
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"Volume: {(int)(MasterVolume * 100)}%");
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 10);
 
                 // Right Column
                 ImGui.TableNextColumn();
@@ -174,12 +196,16 @@ namespace EmuFrontend.UI
                 if (rightOffset > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + rightOffset);
 
                 ImGui.SetNextItemWidth(80);
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 10);
                 int slot = SaveStateSlot;
                 if (ImGui.Combo("##Slot", ref slot, "Slot 0\0Slot 1\0Slot 2\0Slot 3\0Slot 4\0")) SaveStateSlot = slot;
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 10);
                 ImGui.SameLine();
-                if (ImGui.Button("Save", new Vector2(60, 40))) { ShouldSaveState = true; }
+                if (ImGui.Button("\u21E9", new Vector2(40, 40))) { ShouldSaveState = true; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Save State");
                 ImGui.SameLine();
-                if (ImGui.Button("Load", new Vector2(60, 40))) { ShouldLoadState = true; }
+                if (ImGui.Button("\u21E7", new Vector2(40, 40))) { ShouldLoadState = true; }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Load State");
 
                 ImGui.SameLine();
                 ImGui.BeginGroup();
@@ -231,12 +257,7 @@ namespace EmuFrontend.UI
                     if (ImGui.BeginTabItem("Audio"))
                     {
                         ImGui.Spacing();
-                        float vol = MasterVolume;
-                        if (ImGui.SliderFloat("Master Volume", ref vol, 0.0f, 1.0f)) MasterVolume = vol;
-                        
-                        bool mute = IsMuted;
-                        if (ImGui.Checkbox("Mute", ref mute)) IsMuted = mute;
-                        
+                        ImGui.Text("Volume controls are available on the bottom bar.");
                         ImGui.EndTabItem();
                     }
                     if (ImGui.BeginTabItem("Cheats"))
