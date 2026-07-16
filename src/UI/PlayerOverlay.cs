@@ -170,6 +170,10 @@ namespace EmuFrontend.UI
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Load State");
             ImGui.SameLine();
             
+            if (ImGui.Button("\uf11b", new Vector2(40, 40))) { ShowControllerSettings = !ShowControllerSettings; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Controller Settings");
+            ImGui.SameLine();
+            
             ImGui.SetNextItemWidth(80);
             float currentY = ImGui.GetCursorPosY();
             ImGui.SetCursorPosY(currentY + 10);
@@ -231,58 +235,70 @@ namespace EmuFrontend.UI
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f);
                 
                 bool show = ShowSettings;
-                ImGui.Begin("DrawerSettings", ref show, ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize);
-                ShowSettings = show;
-                
-                if (ImGui.BeginTabBar("SettingsTabs"))
+                if (ImGui.Begin("Settings Drawer", ref show, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove))
                 {
-                    if (ImGui.BeginTabItem("Video"))
+                    if (ImGui.BeginTabBar("SettingsTabs"))
                     {
-                        ImGui.Spacing();
-                        bool vsync = VSync;
-                        if (ImGui.Checkbox("VSync", ref vsync)) VSync = vsync;
-                        
-                        bool smooth = GraphicSmoothing;
-                        if (ImGui.Checkbox("Bilinear Filtering", ref smooth)) GraphicSmoothing = smooth;
-                        
-                        int ar = AspectRatioSelection;
-                        if (ImGui.Combo("Aspect Ratio", ref ar, "4:3 Original\016:9 Stretch\0Integer Scaling\0")) AspectRatioSelection = ar;
-                        
-                        ImGui.EndTabItem();
-                    }
-                    if (ImGui.BeginTabItem("Audio"))
-                    {
-                        ImGui.Spacing();
-                        ImGui.Text("Volume controls are available on the bottom bar.");
-                        ImGui.EndTabItem();
-                    }
-                    if (ImGui.BeginTabItem("Cheats"))
-                    {
-                        ImGui.Spacing();
-                        ImGui.InputText("Code", ref cheatCodeInput, 256);
-                        if (ImGui.Button("Apply Cheat", new Vector2(120, 30)))
+                        if (ImGui.BeginTabItem("Video"))
                         {
-                            // Implementation pending core hook
-                            cheatCodeInput = string.Empty;
+                            ImGui.Spacing();
+                            bool vsync = VSync;
+                            if (ImGui.Checkbox("VSync", ref vsync)) VSync = vsync;
+                            
+                            bool smooth = GraphicSmoothing;
+                            if (ImGui.Checkbox("Bilinear Filtering", ref smooth)) GraphicSmoothing = smooth;
+                            
+                            int ar = (int)ScreenAspectRatio;
+                            if (ImGui.Combo("Aspect Ratio", ref ar, "4:3 Original\016:9 Stretch\0Integer Scaling\0")) ScreenAspectRatio = (AspectRatio)ar;
+                            
+                            ImGui.EndTabItem();
                         }
-                        ImGui.SameLine();
-                        if (ImGui.Button("Clear All", new Vector2(120, 30)))
+                        if (ImGui.BeginTabItem("Audio"))
                         {
-                            // Implementation pending core hook
+                            ImGui.Spacing();
+                            ImGui.Text("Volume controls are available on the bottom bar.");
+                            ImGui.EndTabItem();
                         }
-                        ImGui.EndTabItem();
+                        if (ImGui.BeginTabItem("Cheats"))
+                        {
+                            ImGui.Spacing();
+                            ImGui.InputText("Code", ref cheatCodeInput, 256);
+                            if (ImGui.Button("Apply Cheat", new Vector2(120, 30)))
+                            {
+                                // Implementation pending core hook
+                                cheatCodeInput = string.Empty;
+                            }
+                            ImGui.SameLine();
+                            if (ImGui.Button("Clear All", new Vector2(120, 30)))
+                            {
+                                // Implementation pending core hook
+                            }
+                            ImGui.EndTabItem();
+                        }
+                        ImGui.EndTabBar();
                     }
-                    ImGui.EndTabBar();
                 }
-                
-                ImGui.SetCursorPosY(360);
-                ImGui.Separator();
-                if (ImGui.Button("Close Settings", new Vector2(-1, 30)))
-                {
-                    ShowSettings = false;
-                }
-
                 ImGui.End();
+                ShowSettings = show;
+                ImGui.PopStyleVar();
+                ImGui.PopStyleColor();
+            }
+
+            // Drawer Controller Settings
+            if (ShowControllerSettings)
+            {
+                ImGui.SetNextWindowPos(new Vector2(380, ImGui.GetIO().DisplaySize.Y - barHeight - 420), ImGuiCond.Always);
+                ImGui.SetNextWindowSize(new Vector2(350, 400), ImGuiCond.Always);
+                ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.12f, 0.12f, 0.14f, 0.98f));
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f);
+                
+                bool showCtrl = ShowControllerSettings;
+                if (ImGui.Begin("Controller Key Mapping", ref showCtrl, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove))
+                {
+                    ImGui.Text("Controller Mapping UI coming soon.");
+                }
+                ImGui.End();
+                ShowControllerSettings = showCtrl;
                 ImGui.PopStyleVar();
                 ImGui.PopStyleColor();
             }
