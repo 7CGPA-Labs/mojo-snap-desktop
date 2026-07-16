@@ -30,6 +30,7 @@ namespace EmuFrontend.UI
         public bool ShowSettings { get; set; } = false;
         public bool ShowControllerSettings { get; set; } = false;
         public bool IsSettingsPopupOpen { get; set; } = false;
+        public string CurrentSettingsMenu { get; set; } = "Main";
         
         public bool IsPaused { get; set; } = false;
         public bool IsFastForward { get; set; } = false;
@@ -219,6 +220,7 @@ namespace EmuFrontend.UI
             {
                 ImGui.OpenPopup("SettingsPopup");
                 IsSettingsPopupOpen = true;
+                CurrentSettingsMenu = "Main";
             }
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Settings");
             
@@ -226,7 +228,28 @@ namespace EmuFrontend.UI
             if (ImGui.BeginPopup("SettingsPopup"))
             {
                 IsSettingsPopupOpen = true;
-                if (ImGui.BeginMenu("Graphics Settings"))
+                
+                if (CurrentSettingsMenu != "Main")
+                {
+                    if (ImGui.Selectable("\uf060 Back"))
+                    {
+                        CurrentSettingsMenu = "Main";
+                    }
+                    ImGui.Separator();
+                    ImGui.TextColored(new Vector4(0.4f, 0.8f, 1.0f, 1.0f), CurrentSettingsMenu);
+                    ImGui.Separator();
+                }
+
+                if (CurrentSettingsMenu == "Main")
+                {
+                    if (ImGui.Selectable("Graphics Settings")) CurrentSettingsMenu = "Graphics Settings";
+                    if (ImGui.Selectable("Screen Capture")) CurrentSettingsMenu = "Screen Capture";
+                    if (ImGui.Selectable("Speed Options")) CurrentSettingsMenu = "Speed Options";
+                    if (ImGui.Selectable("Input Options")) CurrentSettingsMenu = "Input Options";
+                    if (ImGui.Selectable("Save States")) CurrentSettingsMenu = "Save States";
+                    if (ImGui.Selectable("Backend Core Options")) CurrentSettingsMenu = "Backend Core Options";
+                }
+                else if (CurrentSettingsMenu == "Graphics Settings")
                 {
                     ImGui.MenuItem("Shaders", "Disabled");
                     ImGui.MenuItem("Hardware Acceleration", "Native AOT");
@@ -239,11 +262,8 @@ namespace EmuFrontend.UI
                     
                     bool smooth = GraphicSmoothing;
                     if (ImGui.MenuItem("Bilinear Filtering", smooth ? "Enabled" : "Disabled")) { GraphicSmoothing = !smooth; }
-                    
-                    ImGui.EndMenu();
                 }
-                
-                if (ImGui.BeginMenu("Screen Capture"))
+                else if (CurrentSettingsMenu == "Screen Capture")
                 {
                     ImGui.MenuItem("Screenshot Source", "Native Canvas");
                     ImGui.MenuItem("Screenshot Format", "png");
@@ -251,37 +271,28 @@ namespace EmuFrontend.UI
                     ImGui.MenuItem("Screen Recording FPS", "60");
                     ImGui.MenuItem("Screen Recording Format", "mp4");
                     ImGui.MenuItem("Screen Recording Upscale", "1x");
-                    ImGui.EndMenu();
                 }
-                
-                if (ImGui.BeginMenu("Speed Options"))
+                else if (CurrentSettingsMenu == "Speed Options")
                 {
                     ImGui.MenuItem("Fast Forward", "Disabled");
                     ImGui.MenuItem("Slow Motion", "Disabled");
-                    ImGui.EndMenu();
                 }
-                
-                if (ImGui.BeginMenu("Input Options"))
+                else if (CurrentSettingsMenu == "Input Options")
                 {
                     ImGui.MenuItem("Menubar Mouse Trigger", "Downward Movement");
                     ImGui.MenuItem("Direct Keyboard Input", "Disabled");
                     ImGui.MenuItem("Forward Alt key", "Disabled");
                     ImGui.MenuItem("Lock Mouse", "Disabled");
-                    ImGui.EndMenu();
                 }
-                
-                if (ImGui.BeginMenu("Save States"))
+                else if (CurrentSettingsMenu == "Save States")
                 {
                     ImGui.MenuItem("Load State");
                     ImGui.MenuItem("Save State");
                     ImGui.MenuItem("Change Slot");
-                    ImGui.EndMenu();
                 }
-                
-                if (ImGui.BeginMenu("Backend Core Options"))
+                else if (CurrentSettingsMenu == "Backend Core Options")
                 {
                     ImGui.MenuItem("Core-specific settings for ROM");
-                    ImGui.EndMenu();
                 }
                 
                 ImGui.EndPopup();
