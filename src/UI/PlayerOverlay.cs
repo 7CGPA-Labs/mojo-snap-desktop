@@ -222,7 +222,7 @@ namespace EmuFrontend.UI
             }
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Settings");
             
-            ImGui.SetNextWindowPos(new Vector2(windowWidth - 280, windowHeight - barHeight - 250), ImGuiCond.Appearing);
+            ImGui.SetNextWindowPos(new Vector2(windowWidth - 250, windowHeight - barHeight), ImGuiCond.Appearing, new Vector2(0.0f, 1.0f));
             if (ImGui.BeginPopup("SettingsPopup"))
             {
                 IsSettingsPopupOpen = true;
