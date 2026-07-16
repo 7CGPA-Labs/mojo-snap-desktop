@@ -261,7 +261,7 @@ namespace EmuFrontend
                         overlay.ShouldClose = false;
                     }
 
-                    overlay.DrawPlaybackControls(Raylib.GetFPS(), Raylib.GetFrameTime() * 1000f);
+                    overlay.DrawPlaybackControls(Raylib.GetFPS(), Raylib.GetFrameTime() * 1000f, coreManager);
                 }
 
                 rlImGui_cs.rlImGui.End();

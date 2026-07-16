@@ -28,6 +28,7 @@ namespace EmuFrontend.UI
         public bool ShouldReset { get; set; } = false;
         public bool ShouldClose { get; set; } = false;
         public bool ShowSettings { get; set; } = false;
+        public bool ShowControllerSettings { get; set; } = false;
         
         public bool IsPaused { get; set; } = false;
         public bool IsFastForward { get; set; } = false;
@@ -120,7 +121,11 @@ namespace EmuFrontend.UI
             ImGui.End();
         }
 
-        public void DrawPlaybackControls(float fps, float frameTime)
+        private string? keyNamesComboStr = null;
+        private Raylib_cs.KeyboardKey[] keyValues = null!;
+        private string[] buttonNames = new string[] { "B", "Y", "Select", "Start", "Up", "Down", "Left", "Right", "A", "X", "L", "R" };
+
+        public void DrawPlaybackControls(float fps, float frameTime, EmuFrontend.CoreInterop.CoreManager coreManager = null)
         {
             float windowWidth = ImGui.GetIO().DisplaySize.X;
             float windowHeight = ImGui.GetIO().DisplaySize.Y;
@@ -248,8 +253,8 @@ namespace EmuFrontend.UI
                             bool smooth = GraphicSmoothing;
                             if (ImGui.Checkbox("Bilinear Filtering", ref smooth)) GraphicSmoothing = smooth;
                             
-                            int ar = (int)ScreenAspectRatio;
-                            if (ImGui.Combo("Aspect Ratio", ref ar, "4:3 Original\016:9 Stretch\0Integer Scaling\0")) ScreenAspectRatio = (AspectRatio)ar;
+                            int ar = AspectRatioSelection;
+                            if (ImGui.Combo("Aspect Ratio", ref ar, "4:3 Original\016:9 Stretch\0Integer Scaling\0")) AspectRatioSelection = ar;
                             
                             ImGui.EndTabItem();
                         }
@@ -295,7 +300,51 @@ namespace EmuFrontend.UI
                 bool showCtrl = ShowControllerSettings;
                 if (ImGui.Begin("Controller Key Mapping", ref showCtrl, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove))
                 {
-                    ImGui.Text("Controller Mapping UI coming soon.");
+                    if (coreManager != null)
+                    {
+                        if (keyNamesComboStr == null)
+                        {
+                            keyValues = (Raylib_cs.KeyboardKey[])Enum.GetValues(typeof(Raylib_cs.KeyboardKey));
+                            keyNamesComboStr = string.Join('\0', Enum.GetNames(typeof(Raylib_cs.KeyboardKey))) + "\0";
+                        }
+
+                        if (ImGui.BeginTabBar("ControllerTabs"))
+                        {
+                            if (ImGui.BeginTabItem("Player 1"))
+                            {
+                                ImGui.Spacing();
+                                for (int i = 0; i < 12; i++)
+                                {
+                                    int currentIdx = Array.IndexOf(keyValues, coreManager.P1Mappings[i]);
+                                    if (currentIdx < 0) currentIdx = 0;
+                                    if (ImGui.Combo(buttonNames[i], ref currentIdx, keyNamesComboStr))
+                                    {
+                                        coreManager.P1Mappings[i] = keyValues[currentIdx];
+                                    }
+                                }
+                                ImGui.EndTabItem();
+                            }
+                            if (ImGui.BeginTabItem("Player 2"))
+                            {
+                                ImGui.Spacing();
+                                for (int i = 0; i < 12; i++)
+                                {
+                                    int currentIdx = Array.IndexOf(keyValues, coreManager.P2Mappings[i]);
+                                    if (currentIdx < 0) currentIdx = 0;
+                                    if (ImGui.Combo(buttonNames[i], ref currentIdx, keyNamesComboStr))
+                                    {
+                                        coreManager.P2Mappings[i] = keyValues[currentIdx];
+                                    }
+                                }
+                                ImGui.EndTabItem();
+                            }
+                            ImGui.EndTabBar();
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Text("Core Manager not available.");
+                    }
                 }
                 ImGui.End();
                 ShowControllerSettings = showCtrl;
