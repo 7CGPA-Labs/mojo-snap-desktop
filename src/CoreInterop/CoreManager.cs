@@ -42,6 +42,18 @@ namespace EmuFrontend.CoreInterop
         [StructLayout(LayoutKind.Sequential)]
         public struct retro_system_av_info { public retro_game_geometry geometry; public retro_system_timing timing; }
         
+        [StructLayout(LayoutKind.Sequential)]
+        public struct retro_variable { public IntPtr key; public IntPtr value; }
+
+        public class CoreOption
+        {
+            public string Key { get; set; } = "";
+            public string Description { get; set; } = "";
+            public System.Collections.Generic.List<string> Choices { get; set; } = new System.Collections.Generic.List<string>();
+            public string CurrentValue { get; set; } = "";
+            public IntPtr UnmanagedValuePtr { get; set; } = IntPtr.Zero;
+        }
+        
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_get_system_av_info_t(ref retro_system_av_info info);
 
         public retro_init_t? RetroInit;
@@ -214,6 +226,9 @@ namespace EmuFrontend.CoreInterop
 
         public void LoadConfig(string path) {}
 
+        public System.Collections.Generic.List<CoreOption> CoreOptions { get; private set; } = new System.Collections.Generic.List<CoreOption>();
+        public bool VariablesUpdated { get; set; } = false;
+
         private bool EnvironmentCallback(uint cmd, IntPtr data)
         {
             if (cmd == 10) // RETRO_ENVIRONMENT_SET_PIXEL_FORMAT
@@ -227,6 +242,65 @@ namespace EmuFrontend.CoreInterop
                 }
                 Logger.Warn($"Core requested unknown Pixel Format: {format}");
                 return false; 
+            }
+            else if (cmd == 16) // RETRO_ENVIRONMENT_SET_VARIABLES
+            {
+                CoreOptions.Clear();
+                if (data != IntPtr.Zero)
+                {
+                    IntPtr current = data;
+                    while (true)
+                    {
+                        var v = Marshal.PtrToStructure<retro_variable>(current);
+                        if (v.key == IntPtr.Zero || v.value == IntPtr.Zero) break;
+                        
+                        string key = Marshal.PtrToStringUTF8(v.key) ?? "";
+                        string val = Marshal.PtrToStringUTF8(v.value) ?? "";
+                        
+                        var parts = val.Split(';');
+                        if (parts.Length >= 2)
+                        {
+                            var opt = new CoreOption();
+                            opt.Key = key;
+                            opt.Description = parts[0].Trim();
+                            var choices = parts[1].Trim().Split('|');
+                            opt.Choices.AddRange(choices);
+                            if (choices.Length > 0) opt.CurrentValue = choices[0];
+                            CoreOptions.Add(opt);
+                        }
+                        
+                        current = IntPtr.Add(current, Marshal.SizeOf<retro_variable>());
+                    }
+                }
+                return true;
+            }
+            else if (cmd == 15) // RETRO_ENVIRONMENT_GET_VARIABLE
+            {
+                if (data == IntPtr.Zero) return false;
+                var v = Marshal.PtrToStructure<retro_variable>(data);
+                if (v.key != IntPtr.Zero)
+                {
+                    string key = Marshal.PtrToStringUTF8(v.key) ?? "";
+                    var opt = CoreOptions.Find(o => o.Key == key);
+                    if (opt != null && !string.IsNullOrEmpty(opt.CurrentValue))
+                    {
+                        if (opt.UnmanagedValuePtr != IntPtr.Zero) Marshal.FreeCoTaskMem(opt.UnmanagedValuePtr);
+                        opt.UnmanagedValuePtr = Marshal.StringToCoTaskMemUTF8(opt.CurrentValue);
+                        v.value = opt.UnmanagedValuePtr;
+                        Marshal.StructureToPtr(v, data, false);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            else if (cmd == 17) // RETRO_ENVIRONMENT_GET_VARIABLE_UPDATED
+            {
+                if (data != IntPtr.Zero)
+                {
+                    Marshal.WriteByte(data, VariablesUpdated ? (byte)1 : (byte)0);
+                    VariablesUpdated = false;
+                    return true;
+                }
             }
             return false;
         }

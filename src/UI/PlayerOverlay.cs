@@ -299,7 +299,31 @@ namespace EmuFrontend.UI
                 }
                 else if (CurrentSettingsMenu == "Backend Core Options")
                 {
-                    ImGui.MenuItem("Core-specific settings for ROM");
+                    if (coreManager != null && coreManager.CoreOptions.Count > 0)
+                    {
+                        foreach (var opt in coreManager.CoreOptions)
+                        {
+                            if (ImGui.BeginMenu(opt.Description))
+                            {
+                                foreach (var choice in opt.Choices)
+                                {
+                                    if (ImGui.MenuItem(choice, opt.CurrentValue == choice ? "\uf00c" : ""))
+                                    {
+                                        if (opt.CurrentValue != choice)
+                                        {
+                                            opt.CurrentValue = choice;
+                                            coreManager.VariablesUpdated = true;
+                                        }
+                                    }
+                                }
+                                ImGui.EndMenu();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ImGui.MenuItem("No core options available", "N/A");
+                    }
                 }
                 
                 ImGui.EndPopup();
