@@ -34,9 +34,12 @@ namespace EmuFrontend.UI
         
         public bool IsPaused { get; set; } = false;
         public bool IsFastForward { get; set; } = false;
+        public bool IsSlowMotion { get; set; } = false;
+        public bool IsRecording { get; set; } = false;
         public bool ShouldSaveState { get; set; } = false;
         public bool ShouldLoadState { get; set; } = false;
         public bool ShouldToggleFullscreen { get; set; } = false;
+        public bool ShouldTakeScreenshot { get; set; } = false;
         
         private string cheatCodeInput = string.Empty;
         
@@ -196,9 +199,13 @@ namespace EmuFrontend.UI
             ImGui.SameLine();
             
             ImGui.PushStyleColor(ImGuiCol.Button, IsRecording ? new Vector4(0.8f, 0.1f, 0.1f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-            if (ImGui.Button("\uf111", new Vector2(40, 40))) { IsRecording = !IsRecording; }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Record");
-            ImGui.PopStyleColor();
+            if (ImGui.Button(IsRecording ? "\uf0c8" : "\uf111", new Vector2(40, 40))) { IsRecording = !IsRecording; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(IsRecording ? "Stop Recording" : "Start Recording");
+            ImGui.SameLine();
+
+            if (ImGui.Button("\uf030", new Vector2(40, 40))) { ShouldTakeScreenshot = true; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Take Screenshot");
+            ImGui.SameLine();
 
             // Right Side Controls
             ImGui.SameLine(windowWidth - rightSideWidth);
@@ -274,8 +281,8 @@ namespace EmuFrontend.UI
                 }
                 else if (CurrentSettingsMenu == "Speed Options")
                 {
-                    ImGui.MenuItem("Fast Forward", "Disabled");
-                    ImGui.MenuItem("Slow Motion", "Disabled");
+                    if (ImGui.MenuItem("Fast Forward", IsFastForward ? "Enabled" : "Disabled")) { IsFastForward = !IsFastForward; IsSlowMotion = false; }
+                    if (ImGui.MenuItem("Slow Motion", IsSlowMotion ? "Enabled" : "Disabled")) { IsSlowMotion = !IsSlowMotion; IsFastForward = false; }
                 }
                 else if (CurrentSettingsMenu == "Input Options")
                 {

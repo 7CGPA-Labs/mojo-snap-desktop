@@ -245,6 +245,22 @@ namespace EmuFrontend
                 }
                 else if (overlay.CurrentState == ApplicationState.Gameplay)
                 {
+                    // Audio Bindings
+                    Raylib.SetMasterVolume(overlay.IsMuted ? 0.0f : overlay.MasterVolume);
+
+                    // Speed Options
+                    if (overlay.IsFastForward) Raylib.SetTargetFPS(240);
+                    else if (overlay.IsSlowMotion) Raylib.SetTargetFPS(30);
+                    else Raylib.SetTargetFPS(60);
+
+                    // Screenshot Capture
+                    if (overlay.ShouldTakeScreenshot)
+                    {
+                        string timeStamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                        Raylib.TakeScreenshot($"screenshot_{timeStamp}.png");
+                        overlay.ShouldTakeScreenshot = false;
+                    }
+
                     if (overlay.ShouldToggleFullscreen)
                     {
                         Raylib.ToggleFullscreen();
