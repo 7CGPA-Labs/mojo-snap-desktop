@@ -35,7 +35,6 @@ namespace EmuFrontend.UI
         public bool IsPaused { get; set; } = false;
         public bool IsFastForward { get; set; } = false;
         public bool IsSlowMotion { get; set; } = false;
-        public bool IsRecording { get; set; } = false;
         public bool ShouldSaveState { get; set; } = false;
         public bool ShouldLoadState { get; set; } = false;
         public bool ShouldToggleFullscreen { get; set; } = false;
