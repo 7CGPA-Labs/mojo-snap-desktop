@@ -29,6 +29,7 @@ namespace EmuFrontend.UI
         public bool ShouldClose { get; set; } = false;
         public bool ShowSettings { get; set; } = false;
         public bool ShowControllerSettings { get; set; } = false;
+        public bool IsSettingsPopupOpen { get; set; } = false;
         
         public bool IsPaused { get; set; } = false;
         public bool IsFastForward { get; set; } = false;
@@ -143,7 +144,7 @@ namespace EmuFrontend.UI
             ImGui.End();
 
             bool isMouseNearBottom = ImGui.GetIO().MousePos.Y > windowHeight - 120;
-            if (!isMouseNearBottom && !ShowSettings) return;
+            if (!isMouseNearBottom && !ShowSettings && !IsSettingsPopupOpen && !ShowControllerSettings) return;
 
             ImGui.SetNextWindowPos(new Vector2(0, windowHeight - barHeight));
             ImGui.SetNextWindowSize(new Vector2(windowWidth, barHeight));
@@ -217,12 +218,14 @@ namespace EmuFrontend.UI
             if (ImGui.Button("\uf013", new Vector2(40, 40)))
             {
                 ImGui.OpenPopup("SettingsPopup");
+                IsSettingsPopupOpen = true;
             }
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Settings");
             
             ImGui.SetNextWindowPos(new Vector2(windowWidth - 280, windowHeight - barHeight - 250), ImGuiCond.Appearing);
             if (ImGui.BeginPopup("SettingsPopup"))
             {
+                IsSettingsPopupOpen = true;
                 if (ImGui.BeginMenu("Graphics Settings"))
                 {
                     ImGui.MenuItem("Shaders", "Disabled");
@@ -282,6 +285,10 @@ namespace EmuFrontend.UI
                 }
                 
                 ImGui.EndPopup();
+            }
+            else
+            {
+                IsSettingsPopupOpen = false;
             }
             ImGui.SameLine();
             
