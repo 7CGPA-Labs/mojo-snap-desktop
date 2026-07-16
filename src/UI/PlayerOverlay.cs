@@ -151,80 +151,72 @@ namespace EmuFrontend.UI
 
             ImGui.Begin("Media Controls", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar);
             
-            if (ImGui.BeginTable("BottomBarLayout", 3, ImGuiTableFlags.SizingStretchProp))
-            {
-                // Left Column
-                ImGui.TableNextColumn();
-                if (ImGui.Button("\uf013", new Vector2(40, 40))) { ShowSettings = !ShowSettings; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Settings");
-                ImGui.SameLine();
-                if (ImGui.Button("\uf065", new Vector2(40, 40))) { ShouldToggleFullscreen = true; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fullscreen");
-                ImGui.SameLine();
-                if (ImGui.Button("\uf01e", new Vector2(40, 40))) { ShouldReset = true; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset Core");
-                ImGui.SameLine();
-                
-                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.6f, 0.2f, 0.2f, 1.0f));
-                if (ImGui.Button("\uf00d", new Vector2(40, 40))) { ShouldClose = true; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Close ROM");
-                ImGui.PopStyleColor();
+            float rightSideWidth = 40 + 8 + 80 + 8 + 40 + 8 + 40 + 8 + 40 + 20; // 5 elements + spacing
+            
+            // Left Side Controls
+            if (ImGui.Button("\uf01e", new Vector2(40, 40))) { ShouldReset = true; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset Core");
+            ImGui.SameLine();
+            
+            if (ImGui.Button(IsPaused ? "\uf04b" : "\uf04c", new Vector2(40, 40))) { IsPaused = !IsPaused; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(IsPaused ? "Play" : "Pause");
+            ImGui.SameLine();
+            
+            if (ImGui.Button("\uf0c7", new Vector2(40, 40))) { ShouldSaveState = true; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Save State");
+            ImGui.SameLine();
+            
+            if (ImGui.Button("\uf07c", new Vector2(40, 40))) { ShouldLoadState = true; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Load State");
+            ImGui.SameLine();
+            
+            ImGui.SetNextItemWidth(80);
+            float currentY = ImGui.GetCursorPosY();
+            ImGui.SetCursorPosY(currentY + 10);
+            int slot = SaveStateSlot;
+            if (ImGui.Combo("##Slot", ref slot, "Slot 0\0Slot 1\0Slot 2\0Slot 3\0Slot 4\0")) SaveStateSlot = slot;
+            ImGui.SetCursorPosY(currentY);
+            ImGui.SameLine();
+            
+            ImGui.PushStyleColor(ImGuiCol.Button, IsFastForward ? new Vector4(0.8f, 0.4f, 0.0f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
+            if (ImGui.Button("\uf050", new Vector2(40, 40))) { IsFastForward = !IsFastForward; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fast Forward");
+            ImGui.PopStyleColor();
+            ImGui.SameLine();
+            
+            ImGui.PushStyleColor(ImGuiCol.Button, IsRecording ? new Vector4(0.8f, 0.1f, 0.1f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
+            if (ImGui.Button("\uf111", new Vector2(40, 40))) { IsRecording = !IsRecording; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Record");
+            ImGui.PopStyleColor();
 
-                // Center Column
-                ImGui.TableNextColumn();
-                float centerOffset = (ImGui.GetColumnWidth() / 2) - 150;
-                if (centerOffset > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + centerOffset);
-
-                if (ImGui.Button(IsPaused ? "\uf04b" : "\uf04c", new Vector2(40, 40))) { IsPaused = !IsPaused; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip(IsPaused ? "Play" : "Pause");
-                ImGui.SameLine();
-                
-                ImGui.PushStyleColor(ImGuiCol.Button, IsFastForward ? new Vector4(0.8f, 0.4f, 0.0f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-                if (ImGui.Button("\uf050", new Vector2(40, 40))) { IsFastForward = !IsFastForward; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fast Forward");
-                ImGui.PopStyleColor();
-                ImGui.SameLine();
-                
-                ImGui.PushStyleColor(ImGuiCol.Button, IsRecording ? new Vector4(0.8f, 0.1f, 0.1f, 1.0f) : new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-                if (ImGui.Button("\uf111", new Vector2(40, 40))) { IsRecording = !IsRecording; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Record");
-                ImGui.PopStyleColor();
-                ImGui.SameLine();
-                
-                if (ImGui.Button(IsMuted ? "\uf6a9" : "\uf028", new Vector2(40, 40))) { IsMuted = !IsMuted; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip(IsMuted ? "Unmute" : "Mute");
-                ImGui.SameLine();
-                
-                ImGui.SetNextItemWidth(80);
-                float volY = ImGui.GetCursorPosY();
-                ImGui.SetCursorPosY(volY + 10);
-                float vol = MasterVolume;
-                if (ImGui.SliderFloat("##Vol", ref vol, 0.0f, 1.0f, "")) MasterVolume = vol;
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"Volume: {(int)(MasterVolume * 100)}%");
-
-                // Right Column
-                ImGui.TableNextColumn();
-                float rightOffset = ImGui.GetColumnWidth() - 320;
-                if (rightOffset > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + rightOffset);
-
-                ImGui.SetNextItemWidth(80);
-                float comboY = ImGui.GetCursorPosY();
-                ImGui.SetCursorPosY(comboY + 10);
-                int slot = SaveStateSlot;
-                if (ImGui.Combo("##Slot", ref slot, "Slot 0\0Slot 1\0Slot 2\0Slot 3\0Slot 4\0")) SaveStateSlot = slot;
-                
-                ImGui.SameLine();
-                ImGui.SetCursorPosY(comboY);
-                if (ImGui.Button("\uf0c7", new Vector2(40, 40))) { ShouldSaveState = true; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Save State");
-                
-                ImGui.SameLine();
-                ImGui.SetCursorPosY(comboY);
-                if (ImGui.Button("\uf07c", new Vector2(40, 40))) { ShouldLoadState = true; }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Load State");
-
-                ImGui.EndTable();
-            }
+            // Right Side Controls
+            ImGui.SameLine(windowWidth - rightSideWidth);
+            
+            if (ImGui.Button(IsMuted ? "\uf6a9" : "\uf028", new Vector2(40, 40))) { IsMuted = !IsMuted; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(IsMuted ? "Unmute" : "Mute");
+            ImGui.SameLine();
+            
+            ImGui.SetNextItemWidth(80);
+            currentY = ImGui.GetCursorPosY();
+            ImGui.SetCursorPosY(currentY + 10);
+            float vol = MasterVolume;
+            if (ImGui.SliderFloat("##Vol", ref vol, 0.0f, 1.0f, "")) MasterVolume = vol;
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip($"Volume: {(int)(MasterVolume * 100)}%");
+            ImGui.SetCursorPosY(currentY);
+            ImGui.SameLine();
+            
+            if (ImGui.Button("\uf013", new Vector2(40, 40))) { ShowSettings = !ShowSettings; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Settings");
+            ImGui.SameLine();
+            
+            if (ImGui.Button("\uf065", new Vector2(40, 40))) { ShouldToggleFullscreen = true; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fullscreen");
+            ImGui.SameLine();
+            
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.6f, 0.2f, 0.2f, 1.0f));
+            if (ImGui.Button("\uf2f5", new Vector2(40, 40))) { ShouldClose = true; }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Close ROM");
+            ImGui.PopStyleColor();
 
             ImGui.End();
             ImGui.PopStyleVar(3);
