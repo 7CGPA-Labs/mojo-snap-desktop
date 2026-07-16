@@ -217,7 +217,9 @@ namespace EmuFrontend.UI
                 ImGui.SetCursorPosY(comboY);
                 if (ImGui.Button("\uf0c7", new Vector2(40, 40))) { ShouldSaveState = true; }
                 if (ImGui.IsItemHovered()) ImGui.SetTooltip("Save State");
+                
                 ImGui.SameLine();
+                ImGui.SetCursorPosY(comboY);
                 if (ImGui.Button("\uf07c", new Vector2(40, 40))) { ShouldLoadState = true; }
                 if (ImGui.IsItemHovered()) ImGui.SetTooltip("Load State");
 
