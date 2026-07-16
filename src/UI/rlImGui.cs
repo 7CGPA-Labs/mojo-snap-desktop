@@ -300,8 +300,15 @@ namespace rlImGui_cs
                     short[] ranges = new short[] { unchecked((short)0xE000), unchecked((short)0xF8FF), 0 };
                     System.Runtime.InteropServices.Marshal.Copy(ranges, 0, IconFontRanges, 3);
 
-                    ImGui.GetIO().Fonts.AddFontFromFileTTF("fonts/fa-solid-900.ttf", 16.0f, icons_config, IconFontRanges);
-
+                    string fontPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "fonts", "fa-solid-900.ttf");
+                    if (System.IO.File.Exists(fontPath))
+                    {
+                        ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPath, 16.0f, icons_config, IconFontRanges);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine($"WARNING: Font file not found at {fontPath}");
+                    }
                     ImGuiNative.ImFontConfig_destroy(icons_config);
                 }
             }

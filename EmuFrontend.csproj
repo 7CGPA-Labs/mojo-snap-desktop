@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="fonts\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="fonts\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <Target Name="FetchCoresBeforeBuildWindows" BeforeTargets="PrepareForPublish;BeforeBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
