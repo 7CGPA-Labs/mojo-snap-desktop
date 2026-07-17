@@ -303,17 +303,17 @@ namespace EmuFrontend.UI
                     if (ImGui.MenuItem("Load State")) { ShouldLoadState = true; }
                     if (ImGui.MenuItem("Save State")) { ShouldSaveState = true; }
                     
-                    int slot = SaveStateSlot;
+                    int menuSlot = SaveStateSlot;
                     ImGui.SetNextItemWidth(100);
-                    if (ImGui.Combo("Change Slot", ref slot, "Slot 0\0Slot 1\0Slot 2\0Slot 3\0Slot 4\0"))
+                    if (ImGui.Combo("Change Slot", ref menuSlot, "Slot 0\0Slot 1\0Slot 2\0Slot 3\0Slot 4\0"))
                     {
-                        SaveStateSlot = slot;
+                        SaveStateSlot = menuSlot;
                     }
                 }
                 else if (CurrentSettingsMenu == "Cheat Manager")
                 {
                     ImGui.Text("Active Cheats:");
-                    ImGui.BeginChild("CheatList", new Vector2(0, 100), true);
+                    ImGui.BeginChild("CheatList", new Vector2(0, 100));
                     for (int i = 0; i < ActiveCheats.Count; i++)
                     {
                         ImGui.Text($"- {ActiveCheats[i]}");

@@ -29,6 +29,8 @@ namespace EmuFrontend.CoreInterop
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate UIntPtr retro_serialize_size_t();
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate bool retro_serialize_t(IntPtr data, UIntPtr size);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate bool retro_unserialize_t(IntPtr data, UIntPtr size);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_cheat_reset_t();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_cheat_set_t(uint index, bool enabled, [MarshalAs(UnmanagedType.LPStr)] string code);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct retro_game_info { public IntPtr path; public IntPtr data; public UIntPtr size; public IntPtr meta; }
@@ -64,6 +66,8 @@ namespace EmuFrontend.CoreInterop
         public retro_serialize_size_t? RetroSerializeSize;
         public retro_serialize_t? RetroSerialize;
         public retro_unserialize_t? RetroUnserialize;
+        public retro_cheat_reset_t? RetroCheatReset;
+        public retro_cheat_set_t? RetroCheatSet;
 
         private retro_environment_t? EnvCallback;
         private retro_video_refresh_t? VideoCallback;
@@ -120,6 +124,8 @@ namespace EmuFrontend.CoreInterop
             RetroSerializeSize = GetExport<retro_serialize_size_t>("retro_serialize_size");
             RetroSerialize = GetExport<retro_serialize_t>("retro_serialize");
             RetroUnserialize = GetExport<retro_unserialize_t>("retro_unserialize");
+            RetroCheatReset = GetExport<retro_cheat_reset_t>("retro_cheat_reset");
+            RetroCheatSet = GetExport<retro_cheat_set_t>("retro_cheat_set");
 
             var setEnv = GetExport<retro_set_environment_t>("retro_set_environment");
             var setVideo = GetExport<retro_set_video_refresh_t>("retro_set_video_refresh");
