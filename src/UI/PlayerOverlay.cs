@@ -40,7 +40,10 @@ namespace EmuFrontend.UI
         public bool ShouldToggleFullscreen { get; set; } = false;
         public bool ShouldTakeScreenshot { get; set; } = false;
         
+        public bool ShowFPS { get; set; } = true;
+        
         private string cheatCodeInput = string.Empty;
+        public System.Collections.Generic.List<string> ActiveCheats { get; set; } = new System.Collections.Generic.List<string>();
         
         private string romPathInput = string.Empty;
         private string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -135,16 +138,19 @@ namespace EmuFrontend.UI
             float windowHeight = ImGui.GetIO().DisplaySize.Y;
             float barHeight = 50;
             
-            ImGui.SetNextWindowPos(new Vector2(10, 10));
-            ImGui.SetNextWindowBgAlpha(0.3f);
-            ImGui.Begin("PerfHUD", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoInputs);
-            ImGui.TextColored(new Vector4(0.4f, 1.0f, 0.4f, 1.0f), $"FPS: {fps:0.0}");
-            ImGui.TextColored(new Vector4(1.0f, 0.8f, 0.2f, 1.0f), $"{frameTime:0.00}ms");
-            if (IsRecording)
+            if (ShowFPS)
             {
-                ImGui.TextColored(new Vector4(1, 0, 0, 1), "(REC)");
+                ImGui.SetNextWindowPos(new Vector2(10, 10));
+                ImGui.SetNextWindowBgAlpha(0.3f);
+                ImGui.Begin("PerfHUD", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoInputs);
+                ImGui.TextColored(new Vector4(0.4f, 1.0f, 0.4f, 1.0f), $"FPS: {fps:0.0}");
+                ImGui.TextColored(new Vector4(1.0f, 0.8f, 0.2f, 1.0f), $"{frameTime:0.00}ms");
+                if (IsRecording)
+                {
+                    ImGui.TextColored(new Vector4(1, 0, 0, 1), "(REC)");
+                }
+                ImGui.End();
             }
-            ImGui.End();
 
             bool isMouseNearBottom = ImGui.GetIO().MousePos.Y > windowHeight - 120;
             if (!isMouseNearBottom && !ShowSettings && !IsSettingsPopupOpen && !ShowControllerSettings) return;
@@ -237,7 +243,7 @@ namespace EmuFrontend.UI
                 
                 if (CurrentSettingsMenu != "Main")
                 {
-                    if (ImGui.Selectable("\uf060 Back"))
+                    if (ImGui.Selectable("\uf060 Back", false, ImGuiSelectableFlags.DontClosePopups))
                     {
                         CurrentSettingsMenu = "Main";
                     }
@@ -248,18 +254,20 @@ namespace EmuFrontend.UI
 
                 if (CurrentSettingsMenu == "Main")
                 {
-                    if (ImGui.Selectable("Graphics Settings")) CurrentSettingsMenu = "Graphics Settings";
-                    if (ImGui.Selectable("Screen Capture")) CurrentSettingsMenu = "Screen Capture";
-                    if (ImGui.Selectable("Speed Options")) CurrentSettingsMenu = "Speed Options";
-                    if (ImGui.Selectable("Input Options")) CurrentSettingsMenu = "Input Options";
-                    if (ImGui.Selectable("Save States")) CurrentSettingsMenu = "Save States";
-                    if (ImGui.Selectable("Backend Core Options")) CurrentSettingsMenu = "Backend Core Options";
+                    if (ImGui.Selectable("Graphics Settings", false, ImGuiSelectableFlags.DontClosePopups)) CurrentSettingsMenu = "Graphics Settings";
+                    if (ImGui.Selectable("Screen Capture", false, ImGuiSelectableFlags.DontClosePopups)) CurrentSettingsMenu = "Screen Capture";
+                    if (ImGui.Selectable("Speed Options", false, ImGuiSelectableFlags.DontClosePopups)) CurrentSettingsMenu = "Speed Options";
+                    if (ImGui.Selectable("Input Options", false, ImGuiSelectableFlags.DontClosePopups)) CurrentSettingsMenu = "Input Options";
+                    if (ImGui.Selectable("Save States", false, ImGuiSelectableFlags.DontClosePopups)) CurrentSettingsMenu = "Save States";
+                    if (ImGui.Selectable("Cheat Manager", false, ImGuiSelectableFlags.DontClosePopups)) CurrentSettingsMenu = "Cheat Manager";
+                    if (ImGui.Selectable("Backend Core Options", false, ImGuiSelectableFlags.DontClosePopups)) CurrentSettingsMenu = "Backend Core Options";
                 }
                 else if (CurrentSettingsMenu == "Graphics Settings")
                 {
                     ImGui.MenuItem("Shaders", "Disabled");
                     ImGui.MenuItem("Hardware Acceleration", "Native AOT");
-                    ImGui.MenuItem("FPS", "hide");
+                    bool showFps = ShowFPS;
+                    if (ImGui.MenuItem("FPS", showFps ? "Visible" : "Hidden")) { ShowFPS = !showFps; }
                     
                     bool vsync = VSync;
                     if (ImGui.MenuItem("VSync", vsync ? "Enabled" : "Disabled")) { VSync = !vsync; }
@@ -292,9 +300,48 @@ namespace EmuFrontend.UI
                 }
                 else if (CurrentSettingsMenu == "Save States")
                 {
-                    ImGui.MenuItem("Load State");
-                    ImGui.MenuItem("Save State");
-                    ImGui.MenuItem("Change Slot");
+                    if (ImGui.MenuItem("Load State")) { ShouldLoadState = true; }
+                    if (ImGui.MenuItem("Save State")) { ShouldSaveState = true; }
+                    
+                    int slot = SaveStateSlot;
+                    ImGui.SetNextItemWidth(100);
+                    if (ImGui.Combo("Change Slot", ref slot, "Slot 0\0Slot 1\0Slot 2\0Slot 3\0Slot 4\0"))
+                    {
+                        SaveStateSlot = slot;
+                    }
+                }
+                else if (CurrentSettingsMenu == "Cheat Manager")
+                {
+                    ImGui.Text("Active Cheats:");
+                    ImGui.BeginChild("CheatList", new Vector2(0, 100), true);
+                    for (int i = 0; i < ActiveCheats.Count; i++)
+                    {
+                        ImGui.Text($"- {ActiveCheats[i]}");
+                    }
+                    ImGui.EndChild();
+
+                    ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                    ImGui.InputText("##CheatInput", ref cheatCodeInput, 256);
+                    
+                    if (ImGui.Button("Apply Cheat") && !string.IsNullOrWhiteSpace(cheatCodeInput))
+                    {
+                        ActiveCheats.Add(cheatCodeInput);
+                        if (coreManager != null)
+                        {
+                            // In a real scenario, we'd format this appropriately for the core's native cheat interface.
+                            coreManager.RetroCheatSet?.Invoke((uint)ActiveCheats.Count - 1, true, cheatCodeInput);
+                        }
+                        cheatCodeInput = string.Empty;
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Clear All"))
+                    {
+                        ActiveCheats.Clear();
+                        if (coreManager != null)
+                        {
+                            coreManager.RetroCheatReset?.Invoke();
+                        }
+                    }
                 }
                 else if (CurrentSettingsMenu == "Backend Core Options")
                 {

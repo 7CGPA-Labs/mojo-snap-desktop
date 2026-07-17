@@ -253,13 +253,7 @@ namespace EmuFrontend
                     else if (overlay.IsSlowMotion) Raylib.SetTargetFPS(30);
                     else Raylib.SetTargetFPS(60);
 
-                    // Screenshot Capture
-                    if (overlay.ShouldTakeScreenshot)
-                    {
-                        string timeStamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                        Raylib.TakeScreenshot($"screenshot_{timeStamp}.png");
-                        overlay.ShouldTakeScreenshot = false;
-                    }
+                    // Screenshot capture moved to after EndDrawing
 
                     if (overlay.ShouldToggleFullscreen)
                     {
@@ -293,6 +287,13 @@ namespace EmuFrontend
 
                 rlImGui_cs.rlImGui.End();
                 Raylib.EndDrawing();
+
+                if (overlay.ShouldTakeScreenshot)
+                {
+                    string timeStamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                    Raylib.TakeScreenshot($"screenshot_{timeStamp}.png");
+                    overlay.ShouldTakeScreenshot = false;
+                }
             }
 
             if (textureInitialized) Raylib.UnloadTexture(gameTexture);
