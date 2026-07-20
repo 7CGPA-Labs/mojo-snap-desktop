@@ -347,14 +347,44 @@ namespace EmuFrontend.CoreInterop
             
             if (port == 0 && id < 16)
             {
-                pressed = VirtualP1Buttons[id] || (id < 12 && Raylib.IsKeyDown(P1Mappings[id]));
+                pressed = VirtualP1Buttons[id] || 
+                          (id < 12 && Raylib.IsKeyDown(P1Mappings[id])) ||
+                          IsPhysicalGamepadButtonPressed(0, id);
             }
             else if (port == 1 && id < 16)
             {
-                pressed = VirtualP2Buttons[id] || (id < 12 && Raylib.IsKeyDown(P2Mappings[id]));
+                pressed = VirtualP2Buttons[id] || 
+                          (id < 12 && Raylib.IsKeyDown(P2Mappings[id])) ||
+                          IsPhysicalGamepadButtonPressed(1, id);
             }
 
             return (short)(pressed ? 1 : 0);
+        }
+
+        private bool IsPhysicalGamepadButtonPressed(int gamepadPort, uint libretroId)
+        {
+            if (!Raylib.IsGamepadAvailable(gamepadPort)) return false;
+
+            return libretroId switch
+            {
+                0 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.RightFaceRight), // B (Circle/B)
+                1 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.RightFaceUp),    // Y (Triangle/Y)
+                2 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.MiddleLeft),     // Select
+                3 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.MiddleRight),    // Start
+                4 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.LeftFaceUp),     // Up
+                5 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.LeftFaceDown),   // Down
+                6 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.LeftFaceLeft),   // Left
+                7 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.LeftFaceRight),  // Right
+                8 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.RightFaceDown),  // A (Cross/A)
+                9 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.RightFaceLeft),  // X (Square/X)
+                10 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.LeftTrigger1),  // L1
+                11 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.RightTrigger1), // R1
+                12 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.LeftTrigger2),  // L2
+                13 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.RightTrigger2), // R2
+                14 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.LeftThumb),     // L3
+                15 => Raylib.IsGamepadButtonDown(gamepadPort, GamepadButton.RightThumb),    // R3
+                _ => false
+            };
         }
 
         private ConcurrentQueue<short> audioQueue = new ConcurrentQueue<short>();
