@@ -329,19 +329,23 @@ namespace EmuFrontend.CoreInterop
             KeyboardKey.V, KeyboardKey.G, KeyboardKey.U, KeyboardKey.O
         };
 
+        public bool[] VirtualP1Buttons = new bool[16];
+        public bool[] VirtualP2Buttons = new bool[16];
+
+
         private short InputStateCallbackImpl(uint port, uint device, uint index, uint id)
         {
             if (device != 1) return 0; // Only Joypad
             
             bool pressed = false;
             
-            if (port == 0 && id < 12)
+            if (port == 0 && id < 16)
             {
-                pressed = Raylib.IsKeyDown(P1Mappings[id]);
+                pressed = VirtualP1Buttons[id] || (id < 12 && Raylib.IsKeyDown(P1Mappings[id]));
             }
-            else if (port == 1 && id < 12)
+            else if (port == 1 && id < 16)
             {
-                pressed = Raylib.IsKeyDown(P2Mappings[id]);
+                pressed = VirtualP2Buttons[id] || (id < 12 && Raylib.IsKeyDown(P2Mappings[id]));
             }
 
             return (short)(pressed ? 1 : 0);

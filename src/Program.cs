@@ -42,6 +42,7 @@ namespace EmuFrontend
 
             var overlay = new PlayerOverlay();
             var coreManager = new CoreManager();
+            var ecosystem = new EcosystemController(coreManager);
             
             Texture2D gameTexture = new Texture2D();
             bool textureInitialized = false;
@@ -297,6 +298,7 @@ namespace EmuFrontend
 
             if (textureInitialized) Raylib.UnloadTexture(gameTexture);
             rlImGui_cs.rlImGui.Shutdown();
+            ecosystem.Stop();
             Raylib.CloseWindow();
         }
     }
