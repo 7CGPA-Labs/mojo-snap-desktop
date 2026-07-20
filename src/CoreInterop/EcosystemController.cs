@@ -13,17 +13,44 @@ namespace EmuFrontend.CoreInterop
         private WebSocketServer _wsServer;
         private CoreManager _coreManager;
 
+        private readonly object _socketsLock = new object();
+        private System.Collections.Generic.List<IWebSocketConnection> _connectedSockets = new System.Collections.Generic.List<IWebSocketConnection>();
+
         public EcosystemController(CoreManager coreManager, int port = 8080, string serverName = "Mojo Desktop PC")
         {
             _coreManager = coreManager;
+            
+            _coreManager.OnCoreLoaded += (coreName) =>
+            {
+                var payload = $"{{\"event\": \"core_loaded\", \"core\": \"{coreName}\"}}";
+                lock (_socketsLock)
+                {
+                    foreach (var socket in _connectedSockets)
+                    {
+                        socket.Send(payload);
+                    }
+                }
+            };
 
             // Start WebSocket Server
             _wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
             _wsServer.SupportedSubProtocols = new[] { "controller" };
             _wsServer.Start(socket =>
             {
-                socket.OnOpen = () => Logger.Info($"Virtual Controller connected: {socket.ConnectionInfo.ClientIpAddress}");
-                socket.OnClose = () => Logger.Info($"Virtual Controller disconnected: {socket.ConnectionInfo.ClientIpAddress}");
+                socket.OnOpen = () => 
+                {
+                    Logger.Info($"Virtual Controller connected: {socket.ConnectionInfo.ClientIpAddress}");
+                    lock (_socketsLock) { _connectedSockets.Add(socket); }
+                    if (!string.IsNullOrEmpty(_coreManager.CurrentCoreName))
+                    {
+                        socket.Send($"{{\"event\": \"core_loaded\", \"core\": \"{_coreManager.CurrentCoreName}\"}}");
+                    }
+                };
+                socket.OnClose = () => 
+                {
+                    Logger.Info($"Virtual Controller disconnected: {socket.ConnectionInfo.ClientIpAddress}");
+                    lock (_socketsLock) { _connectedSockets.Remove(socket); }
+                };
                 socket.OnBinary = (data) =>
                 {
                     if (data.Length >= 3)
@@ -31,6 +58,8 @@ namespace EmuFrontend.CoreInterop
                         byte playerIdx = data[0]; // 1 or 2
                         byte actionPhase = data[1]; // 1=DOWN, 2=UP, 3=AXIS
                         byte inputId = data[2];
+
+                        if (inputId == 11) return;
 
                         if (actionPhase == 1 || actionPhase == 2)
                         {

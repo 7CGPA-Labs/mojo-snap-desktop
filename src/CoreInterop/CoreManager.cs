@@ -83,6 +83,9 @@ namespace EmuFrontend.CoreInterop
         public AudioStream GameAudioStream;
         public retro_get_system_av_info_t? RetroGetSystemAvInfo;
 
+        public string CurrentCoreName { get; set; } = "";
+        public event Action<string> OnCoreLoaded;
+
         private IntPtr coreHandle;
 
         public string MatchCoreToExtension(string romPath)
@@ -103,6 +106,7 @@ namespace EmuFrontend.CoreInterop
 
         public void LoadCore(string coreName)
         {
+            CurrentCoreName = coreName;
             string ext = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".dll" : ".so";
             string corePath = $"cores/{coreName}_libretro{ext}";
             Logger.Info($"Attempting to load core from: {corePath}");
@@ -146,6 +150,8 @@ namespace EmuFrontend.CoreInterop
             setAudioBatch?.Invoke(AudioBatchCallback);
             setInputPoll?.Invoke(InputPollCallback);
             setInputState?.Invoke(InputStateCallback);
+            
+            OnCoreLoaded?.Invoke(coreName);
         }
 
         private T? GetExport<T>(string name) where T : Delegate
