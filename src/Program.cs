@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using Raylib_cs;
-using ImGuiNET;
 using EmuFrontend.UI;
 using EmuFrontend.CoreInterop;
 using System.Numerics;

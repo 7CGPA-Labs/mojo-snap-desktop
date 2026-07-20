@@ -9,7 +9,6 @@ namespace EmuFrontend.CoreInterop
     public class CoreManager
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_init_t();
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_deinit_t();
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_run_t();
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate bool retro_load_game_t(ref retro_game_info game);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_set_environment_t(retro_environment_t cb);
@@ -59,7 +58,6 @@ namespace EmuFrontend.CoreInterop
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void retro_get_system_av_info_t(ref retro_system_av_info info);
 
         public retro_init_t? RetroInit;
-        public retro_deinit_t? RetroDeinit;
         public retro_run_t? RetroRun;
         public retro_load_game_t? RetroLoadGame;
         public retro_reset_t? RetroReset;
@@ -116,7 +114,6 @@ namespace EmuFrontend.CoreInterop
             Logger.Info($"Core library {corePath} loaded successfully. Handle: {coreHandle}");
 
             RetroInit = GetExport<retro_init_t>("retro_init");
-            RetroDeinit = GetExport<retro_deinit_t>("retro_deinit");
             RetroRun = GetExport<retro_run_t>("retro_run");
             RetroLoadGame = GetExport<retro_load_game_t>("retro_load_game");
             RetroReset = GetExport<retro_reset_t>("retro_reset");
@@ -229,8 +226,6 @@ namespace EmuFrontend.CoreInterop
             }
             Marshal.FreeHGlobal(buffer);
         }
-
-        public void LoadConfig(string path) {}
 
         public System.Collections.Generic.List<CoreOption> CoreOptions { get; private set; } = new System.Collections.Generic.List<CoreOption>();
         public bool VariablesUpdated { get; set; } = false;

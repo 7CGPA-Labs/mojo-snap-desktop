@@ -27,7 +27,6 @@ namespace EmuFrontend.UI
         
         public bool ShouldReset { get; set; } = false;
         public bool ShouldClose { get; set; } = false;
-        public bool ShowSettings { get; set; } = false;
         public bool ShowControllerSettings { get; set; } = false;
         public bool IsSettingsPopupOpen { get; set; } = false;
         public string CurrentSettingsMenu { get; set; } = "Main";
@@ -153,7 +152,7 @@ namespace EmuFrontend.UI
             }
 
             bool isMouseNearBottom = ImGui.GetIO().MousePos.Y > windowHeight - 120;
-            if (!isMouseNearBottom && !ShowSettings && !IsSettingsPopupOpen && !ShowControllerSettings) return;
+            if (!isMouseNearBottom && !IsSettingsPopupOpen && !ShowControllerSettings) return;
 
             ImGui.SetNextWindowPos(new Vector2(0, windowHeight - barHeight));
             ImGui.SetNextWindowSize(new Vector2(windowWidth, barHeight));
