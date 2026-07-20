@@ -9,6 +9,7 @@ Mojo Snap Desktop is a zero-dependency, hardware-accelerated, single-process cro
 - **Dynamic Rate Control:** Advanced C#-based decoupled audio ring buffering seamlessly paces the core emulation speed based on the audio buffer capacity, eliminating video stuttering and audio desync.
 - **EmulatorJS-Inspired UI:** A premium, fully integrated ImGui dashboard offering playback controls, advanced video/audio settings, save states, and more.
 - **Cross-Drive File Browser:** Quickly navigate through system drives and USB thumb drives directly within the frontend.
+- **Virtual Controller Ecosystem:** Features a dual TCP/UDP architecture (UDP for ultra-fast local LAN inputs, TCP WebSocket for WAN fallback) using mDNS for zero-configuration discovery, allowing mobile apps to serve as low-latency controllers.
 
 ## Getting Started
 
