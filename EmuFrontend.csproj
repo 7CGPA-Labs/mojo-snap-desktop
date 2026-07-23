@@ -22,6 +22,11 @@
     <None Include="assets\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+    <None Remove="tests\**" />
+  </ItemGroup>
+
   <Target Name="FetchCoresBeforeBuildWindows" BeforeTargets="PrepareForPublish;BeforeBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <Message Text="Fetching cores for Windows..." Importance="high" />
     <Exec Command="powershell -Command &quot;if (-not (Test-Path 'cores')) { New-Item -ItemType Directory -Path 'cores' }; $cores = @('fceumm', 'snes9x', 'genesis_plus_gx', 'gambatte', 'mgba', 'pcsx_rearmed', 'dosbox_pure'); foreach ($core in $cores) { $url = 'https://buildbot.libretro.com/nightly/windows/x86_64/latest/' + $core + '_libretro.dll.zip'; $dest = 'cores\' + $core + '.zip'; $dll = 'cores\' + $core + '_libretro.dll'; if (-not (Test-Path $dll)) { Write-Host 'Downloading' $core '...'; Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -Path $dest -DestinationPath cores -Force; Remove-Item -Path $dest -Force } else { Write-Host 'Skipping' $core '- already downloaded.' } }&quot;" IgnoreExitCode="true" />
