@@ -1,33 +1,59 @@
-# Mojo Snap Desktop
+# 🕹️ Mojo Snap Desktop
 
-Mojo Snap Desktop is a zero-dependency, hardware-accelerated, single-process cross-platform Libretro frontend written in C# (.NET 9). It leverages **Raylib** for rendering and audio, **ImGui.NET** for a premium sleek media dashboard (inspired by EmulatorJS), and is fully compiled ahead-of-time using **Native AOT** for maximum performance and a minimal footprint.
+Mojo Snap Desktop is a high-performance C# frontend designed to run RetroArch WebAssembly cores natively via Native AOT, providing an out-of-the-box low-latency gaming experience for Windows and Linux.
 
-## Features
+---
 
-- **Native AOT Compiled:** Produces a single, highly optimized native executable. No .NET runtime installation required.
-- **Libretro Core Integration:** Supports unmanaged interop with Libretro cores (e.g., FCEUmm, Snes9x, Genesis Plus GX, Gambatte, mGBA, PCSX ReARMed, DOSBox Pure).
-- **Dynamic Rate Control:** Advanced C#-based decoupled audio ring buffering seamlessly paces the core emulation speed based on the audio buffer capacity, eliminating video stuttering and audio desync.
-- **EmulatorJS-Inspired UI:** A premium, fully integrated ImGui dashboard offering playback controls, advanced video/audio settings, save states, and more.
-- **Cross-Drive File Browser:** Quickly navigate through system drives and USB thumb drives directly within the frontend.
+## ⚡ Features
 
-## Getting Started
+- **Native AOT Compilation:** Blazing fast startup times and minimal memory footprint thanks to .NET 9.0 Native AOT.
+- **Cross-Platform:** Supports Windows and Linux targets.
+- **Seamless Emulation:** Downloads nightly Libretro cores automatically during the build process, so you're always running the latest emulators.
+- **Raylib & ImGui:** Leverages hardware-accelerated rendering through `Raylib-cs` and fluid user interfaces with `ImGui.NET`.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- .NET 9.0 SDK (with Native AOT workload installed)
-- C++ Build Tools (for AOT compilation)
 
-### Building
-Clone the repository and execute the standard build command. The custom MSBuild targets will automatically fetch the required Libretro cores from the buildbot before compilation.
+- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- On Linux, you must install `clang` and `zlib1g-dev` for AOT compilation:
+  ```bash
+  sudo apt-get update
+  sudo apt-get install -y clang zlib1g-dev
+  ```
+
+### Build & Run
+
+To build and run the application in Release mode:
 
 ```bash
-dotnet publish -c Release
+dotnet run -c Release
 ```
 
-### Running the Emulator
-Once compiled, you can launch the executable directly. Use the built-in file browser to navigate your drives and select a valid ROM. The engine will automatically match the ROM extension to the correct embedded Libretro core and boot the game.
+To publish the self-contained native executable for your current platform:
 
-## Project Structure
-- `EmuFrontend.csproj:` Manages AOT directives and auto-downloads the Libretro cores.
-- `src/Program.cs:` Orchestrates the primary Raylib execution, fixed-timestep pacing, and texture manipulation.
-- `src/CoreInterop/CoreManager.cs:` Interacts with Libretro's unmanaged C API using function pointers, managing audio callbacks, environment variables, and video refresh streams.
-- `src/UI/PlayerOverlay.cs:` Renders the EmulatorJS-styled ImGui dashboard over the viewport.
+**Windows:**
+```bash
+dotnet publish -c Release -r win-x64 /p:PublishAot=true
+```
+
+**Linux:**
+```bash
+dotnet publish -c Release -r linux-x64 /p:PublishAot=true
+```
+
+The output will be located in the `publish` directory.
+
+---
+
+## ⚙️ How It Works
+
+Before the project compiles, an MSBuild `PrepareForPublish` hook fires off a script (PowerShell for Windows, Bash for Linux) that automatically connects to the Libretro buildbot. It downloads the necessary dynamic libraries (`.dll` or `.so`) for the retro cores (NES, SNES, Genesis, Gameboy, GBA, PSX, DOS) and places them in the `cores/` directory. The C# application then loads these cores to emulate games seamlessly.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License.
